@@ -16,6 +16,7 @@ my $doc = PDF::Box::Doc->new({ file => 'test.pdf' });
 my $box = PDF::Box->new({
   debug => 1,
   doc => $doc,
+  background => '#FFBBBB',
   contents => [
     {
       margin => 5,
@@ -23,6 +24,23 @@ my $box = PDF::Box->new({
       height => 50,
       background => 'blue',
       padding => 7,
+      width => 200,
+      contents => [
+        {
+          width => "300",
+          contents => [
+            { type => 'Text', align => 'centre', value => 'Tax Invoice' },
+          ],
+        },
+      ],
+    },
+    {
+      margin => 5,
+      border => 1,
+      height => 50,
+      background => 'green',
+      padding => 7,
+      width => 200,
       contents => [
         {
           width => "300",
@@ -35,13 +53,16 @@ my $box = PDF::Box->new({
   ],
 });
 
+#print p($box)."\n";
+
+
 ok( $box, 'new box' );
 
 $box->inflate;
-$box->render;
+#$box->render(0,842);
 
-print p($box)."\n";
-print p($_)."\n" foreach @{$box->contents};
+#print p($box)."\n";
+#print p($_)."\n" foreach @{$box->contents};
 
 $doc->pdf->save;
 $doc->pdf->end();
