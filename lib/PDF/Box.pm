@@ -152,17 +152,17 @@ sub inflate{
 sub render{
   my ($self, $x, $y) = @_;
 
-#  $self->start_x($x) if defined $x;
-#  $self->start_y($y) if defined $y;
+  $self->start_x($x) if defined $x;
+  $self->start_y($y) if defined $y;
 
   my $border_x = $x + $self->margin;
   my $border_y = $y - $self->margin - $self->border_height;
 
   my $gfx = $self->doc->gfx;
 
-    warn sprintf 'fill: %s x: %s y: %s rect: %s %s %s %s',
-      $self->background, $x, $y, $border_x, $border_y, $self->border_width, $self->border_height
-      if $self->debug;
+  warn sprintf 'fill: %s x: %s y: %s rect: %s %s %s %s',
+    $self->background, $x, $y, $border_x, $border_y, $self->border_width, $self->border_height
+    if $self->debug;
 
   if ($self->border || $self->background){
     $gfx->rect($border_x, $border_y, $self->border_width, $self->border_height);
@@ -182,9 +182,22 @@ sub render{
     $gfx->stroke;
   }
 
+  $x += $self->padding;
+  $y -= $self->padding;
+
+  if ($self->contents){
+    foreach(@{$self->contents}){
+      $_ = $self->inflate_content($_);
+#      my ($x,$y) = $_->render($self->content_x,$self->content_y);
+      ($x,$y) = $_->render($x,$y);
+#      $self->content_x($x);
+#      $self->content_y($y);
+    }
+  }
+
   return (
-    $self->x, # + $self->margin + $self->border + $self->padding,
-    $self->y, # - $self->margin - $self->border - $self->padding
+    $self->start_x + $self->outer_width, #self->x + $self->margin + $self->border + $self->padding,
+    $self->start_y, # - $self->margin - $self->border - $self->padding
   );
 }
 
@@ -201,25 +214,28 @@ sub inflate_content{
   if (ref $content eq 'HASH'){
     $type = delete $content->{type};
   }
+
+  my $args = {
+#########################################################
+    start_x => 0,
+    start_y => 0,
+    available_width => $self->inner_width,
+    available_height => $self->inner_height,
+#########################################################
+    doc => $self->doc,
+    debug => $self->debug,
+    %$content
+  };
+
   # assume it's a box by default
   if (!defined $type || !$type || $type eq 'Box'){
-    return $self->new({
-#########################################################
-      start_x => 0,
-      start_y => 0,
-      available_width => $self->inner_width,
-      available_height => $self->inner_height,
-#########################################################
-      doc => $self->doc,
-      debug => $self->debug,
-      %$content
-    });
+    return $self->new($args);
   }
   if ($type =~ s/^\+//){
-    return $type->new($content);
+    return $type->new($args);
   }
   $type = 'PDF::Box::Content::'.$type;
-  return $type->new($content);
+  return $type->new($args);
 }
 
 __PACKAGE__->meta->make_immutable;

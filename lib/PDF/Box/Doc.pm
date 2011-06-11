@@ -25,6 +25,9 @@ sub _build_page_height{ 842 }
 has 'gfx' => ( isa => 'Object', is => 'rw', lazy_build => 1 );
 sub _build_gfx{ shift->page->gfx }
 
+has 'text' => ( isa => 'Object', is => 'rw', lazy_build => 1 );
+sub _build_text{ shift->page->text }
+
 has 'font' => ( isa => 'HashRef', is => 'ro', lazy_build => 1 );
 sub _build_font{
   my ($self) = @_;

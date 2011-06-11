@@ -29,7 +29,7 @@ my $box = PDF::Box->new({
         {
           width => "300",
           contents => [
-            { type => 'Text', align => 'centre', value => 'Tax Invoice' },
+            { type => 'Text', align => 'centre', value => 'Tax Invoice', size => 36, color => 'black' },
           ],
         },
       ],
@@ -45,7 +45,7 @@ my $box = PDF::Box->new({
         {
           width => "300",
           contents => [
-            { type => 'Text', align => 'centre', value => 'Tax Invoice' },
+            { type => 'Text', align => 'centre', value => 'Tax Invoice', size => 26, color => 'white' },
           ],
         },
       ],
@@ -58,8 +58,8 @@ my $box = PDF::Box->new({
 
 ok( $box, 'new box' );
 
-$box->inflate;
-#$box->render(0,842);
+#$box->inflate;
+$box->render(0,842);
 
 #print p($box)."\n";
 #print p($_)."\n" foreach @{$box->contents};
