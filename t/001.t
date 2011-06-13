@@ -22,6 +22,8 @@ my $box = PDF::Box->new({
   debug => 1,
   doc => $doc,
   background => '#FFBBBB',
+  max_width => '595',
+  max_height => '842',
   contents => [
     {
 #      margin => 5,
@@ -36,7 +38,7 @@ my $box = PDF::Box->new({
           margin => 5,
           border => 0,
           padding => 20,
-          width => 250,
+          width => 200,
           contents => [
             {
 #              width => "300",
@@ -70,7 +72,7 @@ my $box = PDF::Box->new({
       height => 50,
       background => 'green',
       padding => 7,
-      width => 200,
+      width => 350,
       contents => [
         {
           width => "300",
