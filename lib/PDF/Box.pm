@@ -13,6 +13,7 @@ has 'border'   => ( isa => 'Int', is => 'ro', default => 0 );
 has 'padding'  => ( isa => 'Int', is => 'ro', default => 0 );
 has 'margin'   => ( isa => 'Int', is => 'ro', default => 0 );
 has 'background' => ( isa => 'Str', is => 'ro' );
+has 'display' => ( isa => 'Str', is => 'ro' );
 
 has 'width'    => ( isa => 'Int', is => 'ro', lazy_build => 1 );
 has 'height'   => ( isa => 'Int', is => 'ro', lazy_build => 1 );
@@ -127,27 +128,8 @@ sub _build_y{
   return $y;
 }
 
-has 'content_x' => ( isa => 'Int', is => 'rw' );
-has 'content_y' => ( isa => 'Int', is => 'rw' );
-
-
-sub inflate{
-  my ($self) = @_;
-  my ($x,$y) = $self->render(0,842);
-#  $self->content_x($x);
-#  $self->content_y($y);
-
-
-  if ($self->contents){
-    foreach(@{$self->contents}){
-      $_ = $self->inflate_content($_);
-#      my ($x,$y) = $_->render($self->content_x,$self->content_y);
-      ($x,$y) = $_->render($x,$y);
-#      $self->content_x($x);
-#      $self->content_y($y);
-    }
-  }
-}
+has 'content_x' => ( isa => 'Num', is => 'rw' );
+has 'content_y' => ( isa => 'Num', is => 'rw' );
 
 sub render{
   my ($self, $x, $y) = @_;
@@ -160,45 +142,54 @@ sub render{
 
   my $gfx = $self->doc->gfx;
 
+    $gfx->linewidth(1);
+    $gfx->strokecolor('blue');
+    $gfx->move($x, $y);
+    $gfx->line($x+3, $y);
+    $gfx->stroke;
+    $gfx->move($x, $y);
+    $gfx->line($x, $y-3);
+    $gfx->stroke;
+
   warn sprintf 'fill: %s x: %s y: %s rect: %s %s %s %s',
     $self->background, $x, $y, $border_x, $border_y, $self->border_width, $self->border_height
     if $self->debug;
 
-  if ($self->border || $self->background){
-    $gfx->rect($border_x, $border_y, $self->border_width, $self->border_height);
-    #          left       bottom                  width         height
-  }
-
   if ($self->background){
     $gfx->fillcolor($self->background);
-#    $gfx->rect($self->x, $self->y-$self->available_height, $self->width, $self->height);
-    #          left      bottom                            width         height
+    $gfx->rect($border_x, $border_y, $self->border_width, $self->border_height);
     $gfx->fill;
   }
 
   if (my $width = $self->border){
     $gfx->linewidth($width);
     $gfx->strokecolor('black');
+    $gfx->rect($border_x, $border_y, $self->border_width, $self->border_height);
     $gfx->stroke;
   }
 
-  $x += $self->padding;
-  $y -= $self->padding;
+  $self->content_x($self->start_x - 1 + $self->margin + $self->border + $self->padding);
+  $self->content_y($self->start_y + 1 - ($self->margin + $self->border + $self->padding));
 
   if ($self->contents){
     foreach(@{$self->contents}){
       $_ = $self->inflate_content($_);
-#      my ($x,$y) = $_->render($self->content_x,$self->content_y);
-      ($x,$y) = $_->render($x,$y);
-#      $self->content_x($x);
-#      $self->content_y($y);
+      my ($x,$y) = $_->render($self->content_x,$self->content_y);
+      $self->content_x($x);
+      $self->content_y($y);
     }
   }
 
-  return (
-    $self->start_x + $self->outer_width, #self->x + $self->margin + $self->border + $self->padding,
-    $self->start_y, # - $self->margin - $self->border - $self->padding
-  );
+  my ($return_x, $return_y);
+  if ($self->display eq 'block'){
+    $return_x = $self->start_x;
+    $return_y = $self->start_y - $self->outer_height;
+  } else {
+    $return_x = $self->start_x + $self->outer_width + 1;
+    $return_y = $self->start_y;
+  }
+
+  return ($return_x, $return_y);
 }
 
 sub add_to_contents{

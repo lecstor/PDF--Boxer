@@ -13,30 +13,60 @@ use_ok('PDF::Box::Doc');
 
 my $doc = PDF::Box::Doc->new({ file => 'test.pdf' });
 
+my $bus = [
+  '3 Bondi Cres, Kewarra Beach, Qld 4879',
+  '(07) 4055 6926  enquiries@eightdegrees.com.au',
+];
+
 my $box = PDF::Box->new({
   debug => 1,
   doc => $doc,
   background => '#FFBBBB',
   contents => [
     {
-      margin => 5,
-      border => 1,
-      height => 50,
-      background => 'blue',
-      padding => 7,
-      width => 200,
+#      margin => 5,
+      border => 2,
+#      padding => 7,
+      height => 80,
+      display => 'block',
+      background => 'lightblue',
+#      width => 380,
       contents => [
         {
-          width => "300",
+          margin => 5,
+          border => 0,
+          padding => 20,
+          width => 250,
           contents => [
-            { type => 'Text', align => 'centre', value => 'Tax Invoice', size => 36, color => 'black' },
+            {
+#              width => "300",
+              contents => [
+                { type => 'Text', value => ['Tax Invoice'], size => 36, color => 'black' },
+              ],
+            },
           ],
         },
-      ],
+        {
+          margin => 0,
+          border => 0,
+          padding => 10,
+          display => 'block',
+#          width => 300,
+          contents => [
+            {
+#              width => "300",
+              contents => [
+                { type => 'Text', align => 'right', value => ['Eight Degrees Off Centre'], size => 20, color => 'black' },
+                { type => 'Text', align => 'right', value => $bus, size => 14, color => 'black' },
+              ],
+            },
+          ],
+        },
+      ]
     },
     {
       margin => 5,
-      border => 1,
+      border => 5,
       height => 50,
       background => 'green',
       padding => 7,
@@ -45,7 +75,7 @@ my $box = PDF::Box->new({
         {
           width => "300",
           contents => [
-            { type => 'Text', align => 'centre', value => 'Tax Invoice', size => 26, color => 'white' },
+            { type => 'Text', align => 'centre', value => ['Tgax Invoice'], size => 26, color => 'white' },
           ],
         },
       ],
@@ -58,7 +88,6 @@ my $box = PDF::Box->new({
 
 ok( $box, 'new box' );
 
-#$box->inflate;
 $box->render(0,842);
 
 #print p($box)."\n";
