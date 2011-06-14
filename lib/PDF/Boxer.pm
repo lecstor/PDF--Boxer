@@ -8,15 +8,22 @@ use Try::Tiny;
 
 has 'doc' => ( isa => 'Object', is => 'ro' );
 
-has 'margin_left' => ( isa => 'Int', is => 'rw', default => 0 );
-has 'margin_top'  => ( isa => 'Int', is => 'rw', lazy_build => 1 );
-sub _build_margin_top{ shift->max_height }
+has 'content_margin_left' => ( isa => 'Int', is => 'rw', default => 0 );
+has 'content_margin_top'  => ( isa => 'Int', is => 'rw', lazy_build => 1 );
+sub _build_content_margin_top{ shift->max_height }
 
 has 'max_width' => ( isa => 'Int', is => 'rw', default => 595 );
 has 'max_height'  => ( isa => 'Int', is => 'rw', default => 842 );
 
-has 'parent_box' => ( isa => 'PDF::Boxer::Box', is => 'rw' ); 
+#has 'parent_box' => ( isa => 'PDF::Boxer::Box', is => 'rw', clearer => 'clear_parent_box' ); 
 has 'sibling_box' => ( isa => 'PDF::Boxer::Box', is => 'rw', clearer => 'clear_sibling_box' ); 
+
+has 'box_stack' => ( isa => 'ArrayRef', is => 'ro', default => sub{[]} ); 
+
+sub parent_box{
+  my ($self) = @_;
+  return $self->box_stack->[0];
+}
 
 sub add_to_pdf{
   my ($self, $spec) = @_;
@@ -32,23 +39,34 @@ sub add_to_pdf{
 
   $box->render();
 
-  $self->margin_left($box->content_left);
-  $self->margin_top($box->content_top);
+  $self->content_margin_left($box->content_left);
+  $self->content_margin_top($box->content_top);
 
-  $self->parent_box($box);
+  unshift(@{$self->box_stack}, $box);
 
   foreach(@$contents){
     $self->sibling_box($self->add_to_pdf($_));
   }
 
+  shift @{$self->box_stack} if @{$self->box_stack} > 1;
+
+  # set margin top and margin left for next box
+  # inline box - next box sits to it's right
+  # block box - next box sits under it
+  # text - next box always sits under it?
+
+
   if ($box->display eq 'block'){
     die 'how did we get here?' unless $self->parent_box;
-    # set margin_left to left-most point of outer box..
-    $self->margin_left($self->parent_box->content_left);
-# need to set margin_top to previous contents bootom margin for text?
-    $self->margin_top($self->sibling_box->margin_top - $self->sibling_box->margin_height);
+    # set content_margin_left to left-most point of outer box..
+    $self->content_margin_left($self->parent_box->content_left);
+# need to set content_margin_top to previous contents bootom margin for text?
+#    $self->content_margin_top($self->sibling_box->margin_top - $self->sibling_box->margin_height);
+    $self->content_margin_top($box->margin_top - $box->margin_height);
   } else {
-    $self->margin_left($box->margin_left + $box->margin_width + 1);
+    $self->content_margin_left($box->margin_left + $box->margin_width + 1);
+    $self->content_margin_top($self->parent_box->content_top);
+#    $self->content_margin_top($box->margin_top - $box->margin_height);
   }
 
   $self->clear_sibling_box;
@@ -69,8 +87,8 @@ sub inflate{
     boxer => $self,
     max_width => $self->parent_box ? $self->parent_box->width : $self->max_width,
     max_height => $self->parent_box ? $self->parent_box->height : $self->max_height,
-    margin_left => $self->margin_left,
-    margin_top => $self->margin_top,
+    margin_left => $self->content_margin_left,
+    margin_top => $self->content_margin_top,
     %$spec
   });
 
