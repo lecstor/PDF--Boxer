@@ -1,4 +1,4 @@
-package PDF::Box::Doc;
+package PDF::Boxer::Doc;
 use Moose;
 use namespace::autoclean;
 

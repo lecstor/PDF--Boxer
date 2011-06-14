@@ -1,12 +1,10 @@
-package PDF::Box::Role::BoxModel;
+package PDF::Boxer::Role::Size;
 use Moose::Role;
+
+requires qw!margin border padding!;
 
 has 'max_width' => ( isa => 'Int', is => 'ro', required => 1 );
 has 'max_height' => ( isa => 'Int', is => 'ro', required => 1 );
-
-has 'margin'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
-has 'border'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
-has 'padding'  => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
 
 has 'width' => ( isa => 'Int', is => 'ro', lazy_build => 1 );
 has 'height' => ( isa => 'Int', is => 'ro', lazy_build => 1 );
@@ -19,36 +17,6 @@ has 'border_height'   => ( isa => 'Int', is => 'ro', lazy_build => 1 );
 
 has 'padding_width'    => ( isa => 'Int', is => 'ro', lazy_build => 1 );
 has 'padding_height'   => ( isa => 'Int', is => 'ro', lazy_build => 1 );
-
-sub BUILDARGS{
-  my ($class, $args) = @_;
-
-  foreach my $attr (qw! margin border padding !){
-    next unless exists $args->{$attr};
-    my $arg = $args->{$attr};
-    if (ref($arg)){
-      unless (ref($arg) eq 'ARRAY'){
-        die "Arg to $attr must be string or array reference";
-      }
-    } else {
-      $arg = [split(/\s+/, $arg)];
-    }
-    my $val = [$arg->[0]];
-    $val->[1] = defined $arg->[1] ? $arg->[1] : $val->[0];
-    $val->[2] = defined $arg->[2] ? $arg->[2] : $val->[0];
-    $val->[3] = defined $arg->[3] ? $arg->[3] : $val->[1];
-
-    $args->{$attr} = $val;
-  }
-
-  return $args;
-}
-
-sub BUILD{
-  my ($self) = @_;
-  die sprintf "not enough room for width: mw: %s > %s", $self->margin_width, $self->max_width if $self->has_width && $self->margin_width > $self->max_width;
-  die "not enough room for height" if $self->has_height && $self->margin_height > $self->max_height;
-}
 
 sub _build_width{
   my ($self) = @_;
@@ -126,7 +94,18 @@ sub _build_margin_height{
   return $val;
 }
 
-
+sub dump_size{
+  my ($self) = @_;
+  my @lines = (
+    '== Size ==',
+    (sprintf 'Margin: %s x %s', $self->margin_width, $self->margin_height),
+    (sprintf 'Border: %s x %s', $self->border_width, $self->border_height),
+    (sprintf 'Padding: %s x %s', $self->padding_width, $self->padding_height),
+    (sprintf 'Content: %s x %s', $self->width, $self->height),
+  );
+  $_ .= "\n" foreach @lines;
+  return join('', @lines);
+}
 
 
 
