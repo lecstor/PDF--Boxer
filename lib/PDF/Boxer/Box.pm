@@ -49,6 +49,7 @@ sub render{
 #warn p($self);
 
   warn "\n".'=== '.$self->name. ' ==='."\n";
+  warn $self->dump_spec;
   warn $self->dump_position;
   warn $self->dump_size;
   $self->add_marker;
@@ -91,6 +92,18 @@ sub add_marker{
   $gfx->move($self->margin_left, $self->margin_top);
   $gfx->vline($self->margin_top-3);
   $gfx->stroke;
+}
+
+sub dump_spec{
+  my ($self) = @_;
+  my @lines = (
+    '== Spec ==',
+    (sprintf 'Margin: %s %s %s %s', @{$self->margin}),
+    (sprintf 'Border: %s %s %s %s', @{$self->border}),
+    (sprintf 'Paddin: %s %s %s %s', @{$self->padding}),
+  );
+  $_ .= "\n" foreach @lines;
+  return join('', @lines);
 }
 
 
