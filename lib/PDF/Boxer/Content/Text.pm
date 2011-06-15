@@ -7,6 +7,7 @@ extends 'PDF::Boxer::Box';
 has 'size' => ( isa => 'Int', is => 'ro' );
 has 'color' => ( isa => 'Str', is => 'ro' );
 has 'value' => ( isa => 'ArrayRef', is => 'ro' );
+has 'align' => ( isa => 'Str', is => 'ro' );
 
 has 'lead' => ( isa => 'Int', is => 'ro', lazy_build => 1 );
 sub _build_lead{
@@ -48,13 +49,23 @@ warn "Adjust: $adjust ".$self->size*$adjust;
 
   $text->fillcolor($self->color);
   
-  $text->translate($self->content_left,$self->content_top-$adjust);
-
   $text->lead($self->lead);
 
-  foreach(@{$self->value}){
-    $text->text( $_ );
-    $text->nl;
+  if ($self->align eq 'right'){
+    $text->translate($self->content_right,$self->content_top-$adjust);
+
+warn sprintf "Text translate: %s %s", $self->content_right,$self->content_top-$adjust;
+
+    foreach(@{$self->value}){
+      $text->text_right( $_ );
+      $text->nl;
+    }
+  } else {
+    $text->translate($self->content_left,$self->content_top-$adjust);
+    foreach(@{$self->value}){
+      $text->text( $_ );
+      $text->nl;
+    }
   }
 
 #  $self->margin_height();

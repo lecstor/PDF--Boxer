@@ -35,6 +35,9 @@ sub BUILDARGS{
     $args->{$attr} = $val;
   }
 
+  $args->{pressure_width} = 0 if $args->{width};
+  $args->{pressure_height} = 0 if $args->{height};
+
   return $args;
 }
 

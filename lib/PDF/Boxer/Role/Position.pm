@@ -18,6 +18,9 @@ has 'padding_top'  => ( isa => 'Int', is => 'ro', lazy_build => 1 );
 has 'content_left' => ( isa => 'Int', is => 'ro', lazy_build => 1 );
 has 'content_top'  => ( isa => 'Int', is => 'ro', lazy_build => 1 );
 
+has 'content_right' => ( isa => 'Int', is => 'ro', lazy_build => 1 );
+has 'content_bottom'  => ( isa => 'Int', is => 'ro', lazy_build => 1 );
+
 sub _build_margin_right{
   my ($self) = @_;
   return $self->margin_left + $self->margin_width;
@@ -56,6 +59,19 @@ sub _build_content_left{
 sub _build_content_top{
   my ($self) = @_;
   return $self->padding_top - $self->padding->[0];
+}
+
+sub _build_content_right{
+  my ($self) = @_;
+
+warn sprintf "Content right: %s + %s", $self->content_left, $self->width;
+
+  return $self->content_left + $self->width;
+}
+
+sub _build_content_bottom{
+  my ($self) = @_;
+  return $self->content_top - $self->height;
 }
 
 sub dump_position{

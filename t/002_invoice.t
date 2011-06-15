@@ -23,7 +23,6 @@ my $box = {
 
       # set height, maximum width
       height => 80,
-      pressure_height => 0,
 
       background => 'lightblue',
 #      width => 380,
@@ -36,7 +35,6 @@ my $box = {
 
           # set width, maximum height
           width => 200,
-          pressure_width => 0,
 
           contents => [
             {
@@ -56,21 +54,19 @@ my $box = {
           contents => [
             {
               height => 20,
-              pressure_height => 0,
               type => 'Text',
               name => 'Text Header Address1',
-              #align => 'right',
+              align => 'right',
               value => ['Eight Degrees Off Centre'],
               size => 20, color => 'black',
               border => 1,
             },
             {
               height => 30,
-              pressure_height => 0,
               type => 'Text',
               name => 'Text Header Address2',
               border => 1,
-              #align => 'right',
+              align => 'right',
               value => [
                 '3 Bondi Cres, Kewarra Beach, Qld 4879',
                 '(07) 4055 6926  enquiries@eightdegrees.com.au',
@@ -84,18 +80,11 @@ my $box = {
       name => 'Content',
       border => 1,
       background => 'lightgreen',
-      # set height, maximum width
       height => 662,
-      pressure_height => 0,
     },
     {
       name => 'Footer',
       border => 1,
-
-      # set height, maximum width
-#      height => 662,
-#      pressure_height => 0,
-
       background => 'grey',
 #      width => 380,
     },

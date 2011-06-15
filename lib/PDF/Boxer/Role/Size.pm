@@ -24,6 +24,9 @@ has 'padding_height'   => ( isa => 'Int', is => 'ro', lazy_build => 1 );
 
 sub _build_width{
   my ($self) = @_;
+
+warn sprintf "width: %s - ( %s + %s )", $self->padding_width, $self->padding->[1], $self->padding->[3];
+
   return $self->padding_width - ($self->padding->[1] + $self->padding->[3]);
 }
 

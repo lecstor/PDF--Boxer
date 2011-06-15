@@ -40,10 +40,15 @@ sub add_to_pdf{
   warn $self->sibling_box->dump_size if $self->sibling_box;
   warn $self->sibling_box->dump_spec if $self->sibling_box;
 
+  $spec->{max_width} = $self->max_width;
+  $spec->{max_height} = $self->max_height;
+
   if (my $parent = $self->parent_box){
 warn "# set parent";
     $spec->{margin_left} = $parent->content_left;
     $spec->{margin_top} = $parent->content_top;
+    $spec->{max_width} = $parent->width;
+    $spec->{max_height} = $parent->height;
   }
   if (my $sibling = $self->sibling_box){
     if ($sibling->pressure_width){
@@ -52,6 +57,7 @@ warn "# set sibling pressure_width";
     } else {
 warn "# set sibling no pressure_width";
       $spec->{margin_left} = $sibling->margin_right;
+      $spec->{max_width} = $self->max_width - $sibling->margin_right;
     }
   }
 
@@ -112,10 +118,6 @@ sub inflate{
 
   return $class->new({
     boxer => $self,
-    max_width => $self->parent_box ? $self->parent_box->width : $self->max_width,
-    max_height => $self->parent_box ? $self->parent_box->height : $self->max_height,
-#    margin_left => $self->content_margin_left,
-#    margin_top => $self->content_margin_top,
     margin_left => 0,
     margin_top => $self->max_height,
     %$spec
