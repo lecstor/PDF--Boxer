@@ -53,11 +53,14 @@ warn "Adjust: $adjust ".$self->size*$adjust;
 
   if ($self->align eq 'right'){
     $text->translate($self->content_right,$self->content_top-$adjust);
-
-warn sprintf "Text translate: %s %s", $self->content_right,$self->content_top-$adjust;
-
     foreach(@{$self->value}){
       $text->text_right( $_ );
+      $text->nl;
+    }
+  } elsif ($self->align eq 'center'){
+    $text->translate($self->content_left + ($self->width/2),$self->content_top-$adjust);
+    foreach(@{$self->value}){
+      $text->text_center( $_ );
       $text->nl;
     }
   } else {

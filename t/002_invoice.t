@@ -30,7 +30,7 @@ my $box = {
         {
           name => 'Header Left',
           margin => 0,
-          border => 1,
+          border => 0,
           padding => 20,
 
           # set width, maximum height
@@ -48,24 +48,26 @@ my $box = {
         },
         {
           name => 'Header Right',
-          border => 1,
-          padding => 2,
+          border => 0,
+          padding => 5,
 
           contents => [
             {
+              padding => 3,
               height => 20,
               type => 'Text',
               name => 'Text Header Address1',
               align => 'right',
               value => ['Eight Degrees Off Centre'],
               size => 20, color => 'black',
-              border => 1,
+              border => 0,
             },
             {
+              padding => 3,
               height => 30,
               type => 'Text',
               name => 'Text Header Address2',
-              border => 1,
+              border => 0,
               align => 'right',
               value => [
                 '3 Bondi Cres, Kewarra Beach, Qld 4879',
