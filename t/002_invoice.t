@@ -4,7 +4,10 @@ use warnings;
 
 use Test::More;
 use DDP;
+use Data::Dumper;
 use PDF::API2;
+use XML::Simple;
+use XML::Parser;
 
 use lib 'lib';
 
