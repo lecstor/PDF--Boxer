@@ -19,6 +19,8 @@ sub _build_lead_spacing{
   return 20/100;
 }
 
+sub _build_pressure_width{ 1 }
+
 around 'render' => sub{
   my ($orig, $self) = @_;
 

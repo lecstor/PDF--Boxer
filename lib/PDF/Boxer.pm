@@ -5,6 +5,7 @@ use namespace::autoclean;
 use PDF::Boxer::Box;
 use PDF::Boxer::Content::Text;
 use Try::Tiny;
+use DDP;
 
 has 'doc' => ( isa => 'Object', is => 'ro' );
 
@@ -30,6 +31,33 @@ sub add_to_pdf{
   
   my $contents = delete $spec->{contents};
 
+  warn "\n### current: ".$spec->{name} ."\n";
+  warn "\n### parent: ".($self->parent_box ? $self->parent_box->name : 'none')."\n";
+  warn $self->parent_box->dump_position if $self->parent_box;
+  warn $self->parent_box->dump_size if $self->parent_box;
+  warn "\n### sibling: ".($self->sibling_box ? $self->sibling_box->name : 'none')."\n";
+  warn $self->sibling_box->dump_position if $self->sibling_box;
+  warn $self->sibling_box->dump_size if $self->sibling_box;
+  warn $self->sibling_box->dump_spec if $self->sibling_box;
+
+  if (my $parent = $self->parent_box){
+warn "# set parent";
+    $spec->{margin_left} = $parent->content_left;
+    $spec->{margin_top} = $parent->content_top;
+  }
+  if (my $sibling = $self->sibling_box){
+    if ($sibling->pressure_width){
+warn "# set sibling pressure_width";
+      $spec->{margin_top} = $sibling->margin_bottom;
+    } else {
+warn "# set sibling no pressure_width";
+      $spec->{margin_left} = $sibling->margin_right;
+    }
+  }
+
+warn p($spec);
+
+
   my $box = try{
     $self->inflate($spec);
   } catch {
@@ -37,39 +65,36 @@ sub add_to_pdf{
     die $_;
   };
 
+
+  warn "Render ".$box->name."\n";
   $box->render();
 
   $self->content_margin_left($box->content_left);
   $self->content_margin_top($box->content_top);
 
+  unless($box->pressure_width){
+    warn "no box pressure_width\n";
+    $self->content_margin_left($box->margin_left + $box->margin_width + 1);
+  }
+
   unshift(@{$self->box_stack}, $box);
 
+  $self->clear_sibling_box;
   foreach(@$contents){
     $self->sibling_box($self->add_to_pdf($_));
   }
 
+ # $self->clear_sibling_box;
+
   shift @{$self->box_stack} if @{$self->box_stack} > 1;
 
-  # set margin top and margin left for next box
-  # inline box - next box sits to it's right
-  # block box - next box sits under it
-  # text - next box always sits under it?
+  # set position (margin top and margin left) for next box
 
 
-  if ($box->display eq 'block'){
-    die 'how did we get here?' unless $self->parent_box;
-    # set content_margin_left to left-most point of outer box..
-    $self->content_margin_left($self->parent_box->content_left);
-# need to set content_margin_top to previous contents bootom margin for text?
-#    $self->content_margin_top($self->sibling_box->margin_top - $self->sibling_box->margin_height);
-    $self->content_margin_top($box->margin_top - $box->margin_height);
-  } else {
-    $self->content_margin_left($box->margin_left + $box->margin_width + 1);
-    $self->content_margin_top($self->parent_box->content_top);
-#    $self->content_margin_top($box->margin_top - $box->margin_height);
-  }
 
-  $self->clear_sibling_box;
+
+
+#  $self->clear_sibling_box;
 
   return $box;
  
@@ -78,8 +103,10 @@ sub add_to_pdf{
 sub inflate{
   my ($self, $spec) = @_;
 
+  $spec->{type} ||= 'Box';
+
   my $class = 'PDF::Boxer::Box';
-  if ($spec->{type} && lc($spec->{type}) ne 'box'){
+  if ($spec->{type} ne 'Box'){
     $class = 'PDF::Boxer::Content::'.$spec->{type};
   }
 
@@ -87,8 +114,10 @@ sub inflate{
     boxer => $self,
     max_width => $self->parent_box ? $self->parent_box->width : $self->max_width,
     max_height => $self->parent_box ? $self->parent_box->height : $self->max_height,
-    margin_left => $self->content_margin_left,
-    margin_top => $self->content_margin_top,
+#    margin_left => $self->content_margin_left,
+#    margin_top => $self->content_margin_top,
+    margin_left => 0,
+    margin_top => $self->max_height,
     %$spec
   });
 

@@ -10,8 +10,9 @@ with 'PDF::Boxer::Role::Size', 'PDF::Boxer::Role::Position';
 has 'boxer' => ( isa => 'PDF::Boxer', is => 'ro' );
 
 has 'name' => ( isa => 'Str', is => 'ro' );
+has 'type' => ( isa => 'Str', is => 'ro', default => 'Box' );
 has 'background' => ( isa => 'Str', is => 'ro' );
-has 'display' => ( isa => 'Str', is => 'ro', default => 'inline' );
+#has 'display' => ( isa => 'Str', is => 'ro', default => 'inline' );
 
 sub BUILDARGS{
   my ($class, $args) = @_;

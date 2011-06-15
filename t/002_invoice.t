@@ -19,11 +19,12 @@ my $box = {
   contents => [
     {
       name => 'Header',
-#      margin => 5,
       border => 1,
-#      padding => 7,
+
+      # set height, maximum width
       height => 80,
-      display => 'block',
+      pressure_height => 0,
+
       background => 'lightblue',
 #      width => 380,
       contents => [
@@ -32,30 +33,45 @@ my $box = {
           margin => 0,
           border => 1,
           padding => 20,
+
+          # set width, maximum height
           width => 200,
+          pressure_width => 0,
+
           contents => [
-            { type => 'Text', name => 'Text Tax Invoice', value => ['Tax Invoice'], size => 36, color => 'black' },
+            {
+              type => 'Text',
+              name => 'Text Tax Invoice',
+              value => ['Tax Invoice'],
+              size => 36,
+              color => 'black',
+            },
           ],
         },
         {
           name => 'Header Right',
           border => 1,
           padding => 2,
-          display => 'block',
+
           contents => [
             {
-              type => 'Text', display => 'block',
+              height => 20,
+              pressure_height => 0,
+              type => 'Text',
               name => 'Text Header Address1',
-              align => 'right',
+              #align => 'right',
               value => ['Eight Degrees Off Centre'],
               size => 20, color => 'black',
               border => 1,
             },
             {
-              type => 'Text', display => 'block',
+              height => 30,
+              pressure_height => 0,
+              type => 'Text',
               name => 'Text Header Address2',
               border => 1,
-              align => 'right', value => [
+              #align => 'right',
+              value => [
                 '3 Bondi Cres, Kewarra Beach, Qld 4879',
                 '(07) 4055 6926  enquiries@eightdegrees.com.au',
               ], size => 14, color => 'black'
@@ -63,6 +79,25 @@ my $box = {
           ],
         },
       ]
+    },
+    {
+      name => 'Content',
+      border => 1,
+      background => 'lightgreen',
+      # set height, maximum width
+      height => 662,
+      pressure_height => 0,
+    },
+    {
+      name => 'Footer',
+      border => 1,
+
+      # set height, maximum width
+#      height => 662,
+#      pressure_height => 0,
+
+      background => 'grey',
+#      width => 380,
     },
   ],
 };
