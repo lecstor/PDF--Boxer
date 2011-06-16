@@ -2,6 +2,8 @@ package PDF::Boxer::SpecParser;
 use Moose;
 use namespace::autoclean;
 
+use XML::Parser;
+
 has 'clean_whitespace' => ( isa => 'Bool', is => 'ro', default => 1 );
 
 has 'xml_parser' => ( isa => 'XML::Parser', is => 'ro', lazy_build => 1 );

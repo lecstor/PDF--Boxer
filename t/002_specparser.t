@@ -5,9 +5,6 @@ use warnings;
 use Test::More;
 use DDP;
 use Data::Dumper;
-use PDF::API2;
-use XML::Simple;
-use XML::Parser;
 
 use lib 'lib';
 
@@ -17,15 +14,15 @@ use_ok('PDF::Boxer::SpecParser');
 
 my $spec = <<'__EOP__';
 <box name="Main" max_width="595" max_height="842">
-  <box name="Header" border="1" height="100">
-    <box name="Header Left" padding="0" width="320" border="0">
-      <image src="t/lecstor.gif" name="Lecstor Logo" align="center" valign="center" padding="10" scale="60" />
+  <box name="Header" border="3" border_color="orange" pressure_height="0">
+    <box name="Header Left" padding="0" width="320" border_color="blue" border="3" pressure_height="0">
+      <image src="t/lecstor.gif" name="Lecstor Logo" border="3" border_color="purple" align="center" valign="center" padding="10" scale="60" />
     </box>
-    <box name="Header Right" padding="10" border="0">
-      <text name="Address1" padding="3" height="20" align="right" size="20" color="black">
-        <b>Lecstor Pty Ltd</b>
+    <box name="Header Right" padding="10" border="3" border_color="green" pressure_height="0">
+      <text name="Address1" padding="3" border="1" align="right" size="20" color="black">
+        Lecstor Pty Ltd
       </text>
-      <text name="Address2" padding="3" height="30" align="right" size="14" color="black">
+      <text name="Address2" padding="3" align="right" border="3" border_color="grey" size="14" color="black">
         ABN: 13 526 716 639
         123 Example St, Somewhere, Qld 4879
         (07) 4055 6926  jason@lecstor.com
@@ -33,15 +30,15 @@ my $spec = <<'__EOP__';
     </box>
   </box>
   <box name="Details" border="1" height="80">
-    <box name="Recipient" width="300" padding="20">
-      <text size="14">
+    <box name="Recipient" width="300" padding="20" border="1" >
+      <text size="14" border="1" >
         Video Ezy Edgecliff
         Shop 1A Edgecliff Centre, New South Head Road
         Edgecliff NSW 2027
       </text>
     </box>
-    <box name="Invoice" padding="20">
-      <text size="14" align="right">
+    <box name="Invoice" padding="20" border="1" border_color="red">
+      <text size="14" align="right" border="1">
         <b>Tax Invoice</b> No. 242
         Issued 01/01/2011
         Due 14/01/2011
@@ -59,6 +56,7 @@ $spec = $parser->parse($spec);
 warn Data::Dumper->Dumper($spec);
 
 my $boxer = PDF::Boxer->new({
+  debug => 1,
   doc => PDF::Boxer::Doc->new({ file => 'test_invoice.pdf' }),
 });
 

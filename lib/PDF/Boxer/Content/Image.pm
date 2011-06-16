@@ -26,9 +26,7 @@ around 'render' => sub{
 
   die $self->src.": $!" unless -f $self->src;
 
-  $self->$orig();
-
-  warn $self->dump_attr;
+  $self->dump_all;
 
   my $pdf = $self->boxer->doc->pdf;
   my $method = 'image_'.$self->format;
@@ -73,6 +71,11 @@ around 'render' => sub{
   }
 
   $gfx->image($img, $x, $y, @args);
+
+  $self->height($img_height);
+
+  $self->$orig();
+
 
 };
 

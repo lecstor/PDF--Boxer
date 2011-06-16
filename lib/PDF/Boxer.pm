@@ -8,6 +8,8 @@ use PDF::Boxer::Content::Image;
 use Try::Tiny;
 use DDP;
 
+has 'debug'   => ( isa => 'Bool', is => 'ro', default => 0 );
+
 has 'doc' => ( isa => 'Object', is => 'ro' );
 
 has 'content_margin_left' => ( isa => 'Int', is => 'rw', default => 0 );
@@ -32,14 +34,17 @@ sub add_to_pdf{
   
   my $contents = delete $spec->{contents};
 
-  warn "\n### current: ".$spec->{name} ."\n";
-  warn "\n### parent: ".($self->parent_box ? $self->parent_box->name : 'none')."\n";
-  warn $self->parent_box->dump_position if $self->parent_box;
-  warn $self->parent_box->dump_size if $self->parent_box;
-  warn "\n### sibling: ".($self->sibling_box ? $self->sibling_box->name : 'none')."\n";
-  warn $self->sibling_box->dump_position if $self->sibling_box;
-  warn $self->sibling_box->dump_size if $self->sibling_box;
-  warn $self->sibling_box->dump_spec if $self->sibling_box;
+  if ($self->debug){
+    warn "\n### current: ".$spec->{name} ."\n";
+    warn p($spec);
+    warn "\n### parent: ".($self->parent_box ? $self->parent_box->name : 'none')."\n";
+    warn $self->parent_box->dump_position if $self->parent_box;
+    warn $self->parent_box->dump_size if $self->parent_box;
+    warn "\n### sibling: ".($self->sibling_box ? $self->sibling_box->name : 'none')."\n";
+    warn $self->sibling_box->dump_position if $self->sibling_box;
+    warn $self->sibling_box->dump_size if $self->sibling_box;
+    warn $self->sibling_box->dump_spec if $self->sibling_box;
+  }
 
   $spec->{max_width} = $self->max_width;
   $spec->{max_height} = $self->max_height;
@@ -72,10 +77,6 @@ warn p($spec);
     die $_;
   };
 
-
-  warn "Render ".$box->name."\n";
-  $box->render();
-
   $self->content_margin_left($box->content_left);
   $self->content_margin_top($box->content_top);
 
@@ -88,7 +89,9 @@ warn p($spec);
 
   $self->clear_sibling_box;
   foreach(@$contents){
-    $self->sibling_box($self->add_to_pdf($_));
+    my $child = $self->add_to_pdf($_);
+    $box->add_to_children($child);
+    $self->sibling_box($child);
   }
 
  # $self->clear_sibling_box;
@@ -97,6 +100,8 @@ warn p($spec);
 
   # set position (margin top and margin left) for next box
 
+  warn "Render ".$box->name."\n";
+  $box->render();
 
 
 
@@ -118,6 +123,7 @@ sub inflate{
   }
 
   return $class->new({
+    debug => $self->debug,
     boxer => $self,
     margin_left => 0,
     margin_top => $self->max_height,

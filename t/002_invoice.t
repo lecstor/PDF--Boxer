@@ -13,94 +13,56 @@ use lib 'lib';
 
 use_ok('PDF::Boxer');
 use_ok('PDF::Boxer::Doc');
+use_ok('PDF::Boxer::SpecParser');
 
-my $box = {
-  name => 'Main',
-  background => '#FFBBBB',
-  max_width => '595',
-  max_height => '842',
-  contents => [
-    {
-      name => 'Header',
-      border => 1,
+my $spec = <<'__EOP__';
+<box name="Main" max_width="595" max_height="842">
+  <box name="Header" border="1" height="100">
+    <box name="Header Left" padding="0" width="320" border="0">
+      <image src="t/lecstor.gif" name="Lecstor Logo" align="center" valign="center" padding="10" scale="60" />
+    </box>
+    <box name="Header Right" padding="10" border="0">
+      <text name="Address1" padding="3" height="20" align="right" size="20" color="black">
+        <b>Lecstor Pty Ltd</b>
+      </text>
+      <text name="Address2" padding="3" height="30" align="right" size="14" color="black">
+        ABN: 13 526 716 639
+        123 Example St, Somewhere, Qld 4879
+        (07) 4055 6926  jason@lecstor.com
+      </text>
+    </box>
+  </box>
+  <box name="Details" border="1" height="80">
+    <box name="Recipient" width="300" padding="20">
+      <text size="14">
+        Video Ezy Edgecliff
+        Shop 1A Edgecliff Centre, New South Head Road
+        Edgecliff NSW 2027
+      </text>
+    </box>
+    <box name="Invoice" padding="20">
+      <text size="14" align="right">
+        <b>Tax Invoice</b> No. 242
+        Issued 01/01/2011
+        Due 14/01/2011
+      </text>
+    </box>
+  </box>
+  <box name="Content" border="1" height="550"></box>
+  <box name="Footer" border="1"></box>
+</box>
+__EOP__
 
-      # set height, maximum width
-      height => 80,
+my $parser = PDF::Boxer::SpecParser->new;
+$spec = $parser->parse($spec);
 
-      background => 'lightblue',
-#      width => 380,
-      contents => [
-        {
-          name => 'Header Left',
-          margin => 0,
-          border => 0,
-          padding => 20,
-
-          # set width, maximum height
-          width => 200,
-
-          contents => [
-            {
-              type => 'Text',
-              name => 'Text Tax Invoice',
-              value => ['Tax Invoice'],
-              size => 36,
-              color => 'black',
-            },
-          ],
-        },
-        {
-          name => 'Header Right',
-          border => 0,
-          padding => 5,
-
-          contents => [
-            {
-              padding => 3,
-              height => 20,
-              type => 'Text',
-              name => 'Text Header Address1',
-              align => 'right',
-              value => ['Eight Degrees Off Centre'],
-              size => 20, color => 'black',
-              border => 0,
-            },
-            {
-              padding => 3,
-              height => 30,
-              type => 'Text',
-              name => 'Text Header Address2',
-              border => 0,
-              align => 'right',
-              value => [
-                '3 Bondi Cres, Kewarra Beach, Qld 4879',
-                '(07) 4055 6926  enquiries@eightdegrees.com.au',
-              ], size => 14, color => 'black'
-            },
-          ],
-        },
-      ]
-    },
-    {
-      name => 'Content',
-      border => 1,
-      background => 'lightgreen',
-      height => 662,
-    },
-    {
-      name => 'Footer',
-      border => 1,
-      background => 'grey',
-#      width => 380,
-    },
-  ],
-};
+warn Data::Dumper->Dumper($spec);
 
 my $boxer = PDF::Boxer->new({
   doc => PDF::Boxer::Doc->new({ file => 'test_invoice.pdf' }),
 });
 
-$boxer->add_to_pdf($box);
+$boxer->add_to_pdf($spec);
 
 $boxer->doc->pdf->save;
 $boxer->doc->pdf->end();

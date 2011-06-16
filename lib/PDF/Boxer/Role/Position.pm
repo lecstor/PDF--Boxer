@@ -21,6 +21,17 @@ has 'content_top'  => ( isa => 'Int', is => 'ro', lazy_build => 1 );
 has 'content_right' => ( isa => 'Int', is => 'ro', lazy_build => 1 );
 has 'content_bottom'  => ( isa => 'Int', is => 'ro', lazy_build => 1 );
 
+sub clear_position{
+  my ($self) = @_;
+  my $meth;
+  foreach (qw!margin_right margin_bottom border_left border_top padding_left padding_top
+             content_left content_top content_right content_bottom!){
+    $meth = "clear_$_";
+    $self->$meth();
+  }
+}
+
+
 sub _build_margin_right{
   my ($self) = @_;
   return $self->margin_left + $self->margin_width;

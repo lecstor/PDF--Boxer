@@ -1,6 +1,8 @@
 package PDF::Boxer::Box;
 use Moose;
 
+has 'debug'   => ( isa => 'Bool', is => 'ro', default => 0 );
+
 has 'margin'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
 has 'border'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
 has 'padding'  => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
@@ -12,7 +14,16 @@ has 'boxer' => ( isa => 'PDF::Boxer', is => 'ro' );
 has 'name' => ( isa => 'Str', is => 'ro' );
 has 'type' => ( isa => 'Str', is => 'ro', default => 'Box' );
 has 'background' => ( isa => 'Str', is => 'ro' );
+has 'border_color' => ( isa => 'Str', is => 'ro' );
 #has 'display' => ( isa => 'Str', is => 'ro', default => 'inline' );
+
+has 'children'  => ( isa => 'ArrayRef', is => 'rw', default => sub{ [] } );
+
+sub add_to_children{
+  my ($self, $child) = @_;
+  push(@{$self->children}, $child);
+  return $child;
+}
 
 sub BUILDARGS{
   my ($class, $args) = @_;
@@ -47,16 +58,32 @@ sub BUILD{
   die sprintf "not enough room for \"%s\" height: mh: %s > %s", $self->name, $self->margin_height, $self->max_height if $self->has_height && $self->margin_height > $self->max_height;
 }
 
-sub render{
+sub clear{
   my ($self) = @_;
+  $self->clear_size();
+  $self->clear_position();
+}
 
-#warn p($self);
-
-  warn "\n".'=== '.$self->name. ' ==='."\n";
+sub dump_all{
+  my ($self) = @_;
+  return unless $self->debug;
+  warn "\n===========================\n";
+  warn '=== '.$self->name. ' ==='."\n";
   warn $self->dump_spec;
   warn $self->dump_position;
   warn $self->dump_size;
+  warn $self->dump_attr;
+  warn "===========================\n";
   $self->add_marker;
+}
+
+sub render{
+  my ($self) = @_;
+
+  $self->height($self->_height_from_child);
+
+#warn p($self);
+  $self->dump_all;
 
   my $gfx = $self->boxer->doc->gfx;
 
@@ -71,7 +98,7 @@ sub render{
   # we want to thinken "inside" the rectangle..
   if (my $width = $self->border->[0]){
     $gfx->linewidth(1);
-    $gfx->strokecolor('black');
+    $gfx->strokecolor($self->border_color || 'black');
     my ($bl,$bt,$bw,$bh) = ($self->border_left, $self->border_top, $self->border_width, $self->border_height);
     foreach(1..$width){
       $gfx->rect($bl,$bt,$bw,-$bh);
@@ -105,6 +132,17 @@ sub dump_spec{
     (sprintf 'Margin: %s %s %s %s', @{$self->margin}),
     (sprintf 'Border: %s %s %s %s', @{$self->border}),
     (sprintf 'Paddin: %s %s %s %s', @{$self->padding}),
+  );
+  $_ .= "\n" foreach @lines;
+  return join('', @lines);
+}
+
+sub dump_attr{
+  my ($self) = @_;
+  my @lines = (
+    '== Attr ==',
+    (sprintf 'width: %s', $self->width),
+    (sprintf 'height: %s', $self->height),
   );
   $_ .= "\n" foreach @lines;
   return join('', @lines);

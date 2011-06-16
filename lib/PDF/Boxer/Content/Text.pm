@@ -25,17 +25,12 @@ sub _build_pressure_width{ 1 }
 around 'render' => sub{
   my ($orig, $self) = @_;
 
-  $self->$orig();
-
-#  warn "\n".'=== '.$self->name. ' ==='."\n";
-#  warn $self->dump_position;
-#  warn $self->dump_size;
-  warn $self->dump_attr;
-#  $self->add_marker('red');
+  $self->dump_all;
 
   my $text = $self->boxer->doc->text;
 
-  my $font = $self->boxer->doc->font->{Helvetica}{Roman};
+  my $font = $self->boxer->doc->font('Helvetica');
+
   $text->font($font, $self->size);
 
   my $asc = $font->ascender();
@@ -51,28 +46,25 @@ warn "Adjust: $adjust ".$self->size*$adjust;
   
   $text->lead($self->lead);
 
-  if ($self->align eq 'right'){
-    $text->translate($self->content_right,$self->content_top-$adjust);
-    foreach(@{$self->value}){
-      $text->text_right( $_ );
-      $text->nl;
-    }
-  } elsif ($self->align eq 'center'){
-    $text->translate($self->content_left + ($self->width/2),$self->content_top-$adjust);
-    foreach(@{$self->value}){
-      $text->text_center( $_ );
-      $text->nl;
-    }
-  } else {
-    $text->translate($self->content_left,$self->content_top-$adjust);
-    foreach(@{$self->value}){
-      $text->text( $_ );
-      $text->nl;
-    }
+  my $x = $self->content_left;
+  my $y = $self->content_top-$adjust;
+  my $align_method = 'text';
+
+  foreach($self->align || ()){
+    /^rig/ && do { $x = $self->content_right; $align_method = 'text_right' };
+    /^cen/ && do { $x += ($self->width/2);    $align_method = 'text_center' };
   }
 
-#  $self->margin_height();
-#  return ( $x, $y - ($self->lead * scalar @{$self->value}) );
+  $text->translate($x,$y);
+  foreach(@{$self->value}){
+    $text->$align_method( $_ );
+    $text->nl;
+  }
+
+  $self->height($self->lead * scalar @{$self->value});
+
+  $self->$orig();
+
 };
 
 sub dump_attr{
