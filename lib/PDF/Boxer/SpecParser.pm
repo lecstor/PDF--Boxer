@@ -14,6 +14,9 @@ sub parse{
   my ($self, $xml) = @_;
   my $data = $self->xml_parser->parse($xml);
 
+warn Data::Dumper->Dumper($data);
+
+
   my $spec = {};
   $self->mangle_spec($spec, $data);
   $spec = $spec->{contents}[0];
@@ -42,6 +45,11 @@ sub mangle_spec{
       }
       $spec->{type} = 'Text';
       $spec->{value} = \@el;
+    } elsif (lc($tag) eq 'image'){
+warn Data::Dumper->Dumper($spec, $element);
+      $element->[0]{type} = 'Image';
+      push(@{$spec->{contents}}, shift @$element);
+
     } else {
       push(@{$spec->{contents}}, shift @$element);
       $self->mangle_spec($spec->{contents}->[-1], $element);

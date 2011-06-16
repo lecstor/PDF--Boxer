@@ -35,6 +35,9 @@ sub _build_height{
   return $self->padding_height - ($self->padding->[0] + $self->padding->[2]);
 }
 
+sub content_width{ shift->width }
+sub content_height{ shift->height }
+
 sub _build_padding_width{
   my ($self) = @_;
   my $val;

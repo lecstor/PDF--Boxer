@@ -4,6 +4,7 @@ use namespace::autoclean;
 
 use PDF::Boxer::Box;
 use PDF::Boxer::Content::Text;
+use PDF::Boxer::Content::Image;
 use Try::Tiny;
 use DDP;
 
