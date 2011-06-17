@@ -8,8 +8,8 @@ requires qw!margin border padding!;
 has 'margin_left' => ( isa => 'Int', is => 'rw', required => 1, trigger => \&_margin_left_set );
 has 'margin_top'  => ( isa => 'Int', is => 'rw', required => 1, trigger => \&_margin_top_set );
 
-has 'margin_right' => ( isa => 'Int', is => 'ro', lazy_build => 1 );
-has 'margin_bottom'  => ( isa => 'Int', is => 'ro', lazy_build => 1 );
+has 'margin_right' => ( isa => 'Int', is => 'rw', lazy_build => 1 );
+has 'margin_bottom'  => ( isa => 'Int', is => 'rw', lazy_build => 1 );
 
 has 'border_left' => ( isa => 'Int', is => 'ro', lazy_build => 1 );
 has 'border_top'  => ( isa => 'Int', is => 'ro', lazy_build => 1 );

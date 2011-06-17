@@ -34,7 +34,7 @@ sub add_to_pdf{
   my ($self, $spec) = @_;
   
   my $node = $self->inflate($spec);
-  $self->auto_adjust($node);
+  $self->auto_adjust($node, 'children');
 
   $self->render($node);
   return $node;
@@ -104,8 +104,8 @@ sub inflate{
 }
 
 sub auto_adjust{
-  my ($self, $node) = @_;
-  $node->auto_adjust;
+  my ($self, $node, $type) = @_;
+  $node->auto_adjust($type);
 }
 
 sub render{

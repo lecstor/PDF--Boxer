@@ -1,6 +1,6 @@
 package PDF::Boxer::Box;
 use Moose;
-
+use DDP;
 has 'debug'   => ( isa => 'Bool', is => 'ro', default => 0 );
 
 has 'margin'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
@@ -79,69 +79,43 @@ sub dump_all{
   $self->add_marker;
 }
 
+# send a signal to the non-parents who send the signal back up chain.
 sub auto_adjust{
-  my ($self) = @_;
+  my ($self, $type) = @_;
 
-  my $spec = $self->get_spec;
-
-  $self->clear;
-  foreach my $attr (keys %$spec){
-    $self->$attr($spec->{$attr});
-  }
-
-  if (my $parent = $self->parent){
-    $self->max_width($parent->width);
-    $self->max_height($parent->height);
-    $self->margin_left($parent->content_left);
-    $self->margin_top($parent->content_top);
-
-    if (my $sibling = $self->sibling){
-      if ($sibling->pressure_width){
-        $self->margin_top($sibling->margin_bottom - 1);
-      } else {
-        $self->max_width($parent->width - $sibling->margin_right - 1);
-        $self->margin_left($sibling->margin_right + 1);
-      }
-    }
-
-  }
-
-
-
-  if ($self->pressure_height){
-    if ($self->parent){
-      $self->height($self->content_top - $self->parent->content_bottom);
-    }
-  } else {
-    $self->height($self->_height_from_child);
-    $self->parent->auto_adjust if $self->parent;
-  }
-
-  if ($self->pressure_width){
-  
-  } else {
-
-  }
-
-  if (my $sibling = $self->sibling){
-    if ($sibling->pressure_width){
-      $self->margin_top($sibling->margin_bottom - 1);
+  if ($type eq 'parent'){
+    warn "updating ".$self->name."\n";
+    my $spec = $self->get_spec;
+warn "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv\n";
+warn $self->dump_all;
+    if (my $height = delete $spec->{height}){
+warn "set height\n";
+      $self->height($height);
     } else {
-#      $self->max_width($parent->width - $sibling->margin_right - 1) if $self->parent;
-      $self->margin_left($sibling->margin_right + 1);
+warn "clear\n";
+      $self->clear;
     }
-    $self->parent->auto_adjust if $self->parent;
-    foreach(@{$self->children}){
-      $_->auto_adjust;
+warn p($self);
+    foreach my $attr (keys %$spec){
+      $self->$attr($spec->{$attr});
+    }
+warn $self->dump_all;
+warn "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
+    if ($self->sibling){
+      $self->sibling->auto_adjust('parent');
+    } elsif ($self->parent){
+      $self->parent->auto_adjust('parent');
+    }
+  } elsif ($type eq 'children'){
+    warn "signalling ".$self->name."\n";
+    if (@{$self->children}){
+      foreach(@{$self->children}){
+        $_->auto_adjust('children');
+      }
+    } else {
+      $self->auto_adjust('parent');
     }
   }
-
-#    foreach(@{$self->children}){
-#      $_->auto_adjust;
-#    }
- 
-
-
 
 }
 
@@ -169,6 +143,16 @@ sub get_spec{
     $spec->{margin_left} = 0;
     $spec->{margin_top}  = $self->max_height;
   }
+
+  if (@{$self->children} && !$self->pressure_height){
+    my $margin_bottom = $self->children->[-1]->margin_bottom
+                              - $self->padding->[2]
+                              - $self->border->[2]
+                              - $self->margin->[2];
+    $spec->{height} = $spec->{margin_top} - $margin_bottom;
+warn "Child: ".$self->children->[-1]->name." margin_bottom = ".$spec->{margin_bottom}."\n";
+  }
+
   return $spec;
 }
 

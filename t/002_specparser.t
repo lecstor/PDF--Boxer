@@ -31,14 +31,14 @@ my $spec = <<'__EOP__';
   </box>
   <box name="Details" border="1" height="80" border_color="red" pressure_height="0">
     <box name="Recipient" width="300" padding="20" border="1"  pressure_height="0">
-      <text size="14" border="1" pressure_height="0" >
+      <text name="Address" size="14" border="1" pressure_height="0" >
         Video Ezy Edgecliff
         Shop 1A Edgecliff Centre, New South Head Road
         Edgecliff NSW 2027
       </text>
     </box>
     <box name="Invoice" padding="20" border="1" border_color="red" pressure_height="0">
-      <text size="14" align="right" border="1" pressure_height="0">
+      <text name="Issued" size="14" align="right" border="1" pressure_height="0">
         Tax Invoice No. 242
         Issued 01/01/2011
         Due 14/01/2011

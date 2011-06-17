@@ -3,8 +3,8 @@ use Moose::Role;
 
 requires qw!margin border padding!;
 
-has 'max_width' => ( isa => 'Int', is => 'ro', required => 1 );
-has 'max_height' => ( isa => 'Int', is => 'ro', required => 1 );
+has 'max_width' => ( isa => 'Int', is => 'rw', required => 1 );
+has 'max_height' => ( isa => 'Int', is => 'rw', required => 1 );
 
 has 'pressure' => ( isa => 'Bool', is => 'ro', default => 1 );
 has 'pressure_width' => ( isa => 'Bool', is => 'ro', lazy_build => 1 );
@@ -177,6 +177,8 @@ sub dump_size{
     (sprintf 'Margin: %s x %s', $self->margin_width, $self->margin_height),
     (sprintf 'Border: %s x %s', $self->border_width, $self->border_height),
     (sprintf 'Padding: %s x %s', $self->padding_width, $self->padding_height),
+    (sprintf 'Content: %s x %s', $self->width, $self->height),
+    (sprintf 'Pressure: %s x %s', $self->pressure_width, $self->pressure_height),
     (sprintf 'Content: %s x %s', $self->width, $self->height),
   );
   $_ .= "\n" foreach @lines;
