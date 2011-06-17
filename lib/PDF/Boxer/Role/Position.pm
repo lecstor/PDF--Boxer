@@ -1,10 +1,12 @@
 package PDF::Boxer::Role::Position;
 use Moose::Role;
 
+use Carp qw(cluck);
+
 requires qw!margin border padding!;
 
-has 'margin_left' => ( isa => 'Int', is => 'ro', required => 1 );
-has 'margin_top'  => ( isa => 'Int', is => 'ro', required => 1 );
+has 'margin_left' => ( isa => 'Int', is => 'rw', required => 1, trigger => \&_margin_left_set );
+has 'margin_top'  => ( isa => 'Int', is => 'rw', required => 1, trigger => \&_margin_top_set );
 
 has 'margin_right' => ( isa => 'Int', is => 'ro', lazy_build => 1 );
 has 'margin_bottom'  => ( isa => 'Int', is => 'ro', lazy_build => 1 );
@@ -31,6 +33,16 @@ sub clear_position{
   }
 }
 
+sub _margin_left_set{
+  my ($self, $new, $old) = @_;
+  $self->clear;
+  die "margin_left < 0" if $new < 0;
+}
+sub _margin_top_set{
+  my ($self, $new, $old) = @_;
+  $self->clear;
+  cluck "margin_top $new < 0" if $new < 0;
+}
 
 sub _build_margin_right{
   my ($self) = @_;

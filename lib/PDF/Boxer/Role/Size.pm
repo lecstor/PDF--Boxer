@@ -37,10 +37,14 @@ sub _height_set{ shift->clear }
 
 sub _build_width{
   my ($self) = @_;
-
-warn sprintf "width: %s - ( %s + %s )", $self->padding_width, $self->padding->[1], $self->padding->[3];
-
-  return $self->padding_width - ($self->padding->[1] + $self->padding->[3]);
+  my $val;
+  if ($self->pressure_width){
+    $val = $self->padding_width - ($self->padding->[1] + $self->padding->[3]);
+  } else {
+    $val = $self->_width_from_child;
+warn ">>>>> Size build width min: $val\n"; 
+  }
+  return $val;
 }
 
 sub _build_height{
@@ -52,7 +56,6 @@ sub _build_height{
     $val = $self->_height_from_child;
 warn ">>>>> Size build height min: $val\n"; 
   }
-
   return $val;
 }
 
@@ -68,6 +71,19 @@ warn "Height from child: ".$self->content_top." - $content_bottom\n";
   return $self->content_top - $content_bottom;
 }
 
+sub _width_from_child{
+  my ($self) = @_;
+  my $right_child_margin_right = 0;
+  if (my $child = $self->children->[-1]){
+    warn "Child: ".$child->name."\n";
+    $right_child_margin_right = $child->margin_right;
+  }
+  my $content_right = $right_child_margin_right + 1;
+warn "Width from child: ".$self->content_left." - $content_right\n";
+  return $content_right - $self->content_left;
+#  return $self->content_left - $content_right;
+}
+
 sub content_width{ shift->width }
 sub content_height{ shift->height }
 
@@ -79,6 +95,7 @@ sub _build_padding_width{
   } elsif ($self->pressure_width) {
     $val = $self->border_width - ($self->border->[1] + $self->border->[3]);
   } else {
+    $val = $self->width + $self->padding->[1] + $self->padding->[3];
     die "Minimise Box not implemented yet..";
   }
   return $val;
@@ -105,7 +122,7 @@ sub _build_border_width{
   } elsif ($self->pressure_width) {
     $val = $self->margin_width - ($self->margin->[1] + $self->margin->[3]);
   } else {
-    die "Minimise Box not implemented yet..";
+    $val = $self->padding_width + $self->border->[1] + $self->border->[3];
   }
   return $val;
 }
@@ -131,7 +148,7 @@ sub _build_margin_width{
   } elsif ($self->pressure_width) {
     $val = $self->max_width;
   } else {
-    die "Minimise Box not implemented yet..";
+    $val = $self->border_width + $self->margin->[1] + $self->margin->[3];
   }
   return $val;
 }

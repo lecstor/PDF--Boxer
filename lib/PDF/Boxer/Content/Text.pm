@@ -5,6 +5,7 @@ use namespace::autoclean;
 extends 'PDF::Boxer::Box';
 
 has 'size' => ( isa => 'Int', is => 'ro' );
+has 'font' => ( isa => 'Str', is => 'ro', default => 'Helvetica' );
 has 'color' => ( isa => 'Str', is => 'ro' );
 has 'value' => ( isa => 'ArrayRef', is => 'ro' );
 has 'align' => ( isa => 'Str', is => 'ro' );
@@ -21,6 +22,21 @@ sub _build_lead_spacing{
 }
 
 sub _build_pressure_width{ 1 }
+sub _build_pressure_height{ 0 }
+
+sub get_font{
+  my ($self) = @_;
+  return $self->boxer->doc->font( $self->font );
+}
+
+sub baseline_top{
+  my ($self, $font, $size) = @_;
+  my $asc = $font->ascender();
+  my $desc = $font->descender();
+  my $adjust_perc = $asc / (($desc < 0 ? abs($desc) : $desc) + $asc);
+  my $adjust = $self->size*$adjust_perc;
+  return $self->content_top - $adjust;
+}
 
 around 'render' => sub{
   my ($orig, $self) = @_;
@@ -29,25 +45,16 @@ around 'render' => sub{
 
   my $text = $self->boxer->doc->text;
 
-  my $font = $self->boxer->doc->font('Helvetica');
+  my $font = $self->get_font;
 
   $text->font($font, $self->size);
-
-  my $asc = $font->ascender();
-  my $desc = $font->descender();
-  my $adjust_perc = $asc / (($desc < 0 ? abs($desc) : $desc) + $asc);
-  my $adjust = $self->size*$adjust_perc;
-
-warn "asc: $asc desc: $desc";
-
-warn "Adjust: $adjust ".$self->size*$adjust;
 
   $text->fillcolor($self->color);
   
   $text->lead($self->lead);
 
   my $x = $self->content_left;
-  my $y = $self->content_top-$adjust;
+  my $y = $self->baseline_top($font, $self->size);
   my $align_method = 'text';
 
   foreach($self->align || ()){
@@ -61,11 +68,19 @@ warn "Adjust: $adjust ".$self->size*$adjust;
     $text->nl;
   }
 
-  $self->height($self->lead * scalar @{$self->value});
-
   $self->$orig();
 
 };
+
+#around 'adjust_size' => sub{
+#  my ($orig, $self) = @_;
+#  $self->height($self->lead * scalar @{$self->value});
+#};
+
+sub _height_from_child{
+  my ($self) = @_;
+  return $self->lead * scalar @{$self->value};
+}
 
 sub dump_attr{
   my ($self) = @_;

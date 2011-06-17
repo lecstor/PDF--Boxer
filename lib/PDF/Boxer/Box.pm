@@ -18,6 +18,8 @@ has 'border_color' => ( isa => 'Str', is => 'ro' );
 #has 'display' => ( isa => 'Str', is => 'ro', default => 'inline' );
 
 has 'children'  => ( isa => 'ArrayRef', is => 'rw', default => sub{ [] } );
+has 'sibling'  => ( isa => 'Object', is => 'ro' );
+has 'parent'  => ( isa => 'Object', is => 'ro' );
 
 sub add_to_children{
   my ($self, $child) = @_;
@@ -77,13 +79,106 @@ sub dump_all{
   $self->add_marker;
 }
 
+sub auto_adjust{
+  my ($self) = @_;
+
+  my $spec = $self->get_spec;
+
+  $self->clear;
+  foreach my $attr (keys %$spec){
+    $self->$attr($spec->{$attr});
+  }
+
+  if (my $parent = $self->parent){
+    $self->max_width($parent->width);
+    $self->max_height($parent->height);
+    $self->margin_left($parent->content_left);
+    $self->margin_top($parent->content_top);
+
+    if (my $sibling = $self->sibling){
+      if ($sibling->pressure_width){
+        $self->margin_top($sibling->margin_bottom - 1);
+      } else {
+        $self->max_width($parent->width - $sibling->margin_right - 1);
+        $self->margin_left($sibling->margin_right + 1);
+      }
+    }
+
+  }
+
+
+
+  if ($self->pressure_height){
+    if ($self->parent){
+      $self->height($self->content_top - $self->parent->content_bottom);
+    }
+  } else {
+    $self->height($self->_height_from_child);
+    $self->parent->auto_adjust if $self->parent;
+  }
+
+  if ($self->pressure_width){
+  
+  } else {
+
+  }
+
+  if (my $sibling = $self->sibling){
+    if ($sibling->pressure_width){
+      $self->margin_top($sibling->margin_bottom - 1);
+    } else {
+#      $self->max_width($parent->width - $sibling->margin_right - 1) if $self->parent;
+      $self->margin_left($sibling->margin_right + 1);
+    }
+    $self->parent->auto_adjust if $self->parent;
+    foreach(@{$self->children}){
+      $_->auto_adjust;
+    }
+  }
+
+#    foreach(@{$self->children}){
+#      $_->auto_adjust;
+#    }
+ 
+
+
+
+}
+
+sub get_spec{
+  my ($self) = @_;
+  my $spec;
+  if (my $parent = $self->parent){
+    $spec->{max_width}   = $parent->width;
+    $spec->{max_height}  = $parent->height;
+    $spec->{margin_left} = $parent->content_left;
+    $spec->{margin_top}  = $parent->content_top;
+
+    if (my $sibling = $self->sibling){
+      if ($sibling->pressure_width){
+        $spec->{margin_top}  = $sibling->margin_bottom - 1;
+      } else {
+        $spec->{max_width}   = $parent->width - $sibling->margin_right - 1;
+        $spec->{margin_left} = $sibling->margin_right + 1;
+      }
+    }
+
+  } else {
+    $spec->{max_width}   = $self->max_width;
+    $spec->{max_height}  = $self->max_height;
+    $spec->{margin_left} = 0;
+    $spec->{margin_top}  = $self->max_height;
+  }
+  return $spec;
+}
+
 sub render{
   my ($self) = @_;
 
-  $self->height($self->_height_from_child);
+#  $self->height($self->_height_from_child);
 
 #warn p($self);
-  $self->dump_all;
+#  $self->dump_all;
 
   my $gfx = $self->boxer->doc->gfx;
 
@@ -107,6 +202,10 @@ sub render{
       $bw -= 2;
       $bh -= 2;
     }
+  }
+
+  foreach(@{$self->children}){
+    $_->render;
   }
 
 }

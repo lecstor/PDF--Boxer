@@ -19,7 +19,7 @@ my $spec = <<'__EOP__';
       <image src="t/lecstor.gif" name="Lecstor Logo" border="3" border_color="purple" align="center" valign="center" padding="10" scale="60" />
     </box>
     <box name="Header Right" padding="10" border="3" border_color="green" pressure_height="0">
-      <text name="Address1" padding="3" border="1" align="right" size="20" color="black">
+      <text name="Address1" padding="3" border="1" align="right" size="20" border_color="steelblue">
         Lecstor Pty Ltd
       </text>
       <text name="Address2" padding="3" align="right" border="3" border_color="grey" size="14" color="black">
@@ -29,31 +29,32 @@ my $spec = <<'__EOP__';
       </text>
     </box>
   </box>
-  <box name="Details" border="1" height="80">
-    <box name="Recipient" width="300" padding="20" border="1" >
-      <text size="14" border="1" >
+  <box name="Details" border="1" height="80" border_color="red" pressure_height="0">
+    <box name="Recipient" width="300" padding="20" border="1"  pressure_height="0">
+      <text size="14" border="1" pressure_height="0" >
         Video Ezy Edgecliff
         Shop 1A Edgecliff Centre, New South Head Road
         Edgecliff NSW 2027
       </text>
     </box>
-    <box name="Invoice" padding="20" border="1" border_color="red">
-      <text size="14" align="right" border="1">
-        <b>Tax Invoice</b> No. 242
+    <box name="Invoice" padding="20" border="1" border_color="red" pressure_height="0">
+      <text size="14" align="right" border="1" pressure_height="0">
+        Tax Invoice No. 242
         Issued 01/01/2011
         Due 14/01/2011
       </text>
     </box>
   </box>
-  <box name="Content" border="1" height="550"></box>
-  <box name="Footer" border="1"></box>
 </box>
 __EOP__
+
+#  <box name="Content" border="1" height="550"></box>
+#  <box name="Footer" border="1"></box>
 
 my $parser = PDF::Boxer::SpecParser->new;
 $spec = $parser->parse($spec);
 
-warn Data::Dumper->Dumper($spec);
+#warn Data::Dumper->Dumper($spec);
 
 my $boxer = PDF::Boxer->new({
   debug => 1,
