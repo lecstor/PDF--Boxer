@@ -83,24 +83,25 @@ sub dump_all{
 sub auto_adjust{
   my ($self, $type) = @_;
 
-  if ($type eq 'parent'){
-    warn "updating ".$self->name."\n";
     my $spec = $self->get_spec;
 warn "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv\n";
 warn $self->dump_all;
-    if (my $height = delete $spec->{height}){
-warn "set height\n";
-      $self->height($height);
-    } else {
-warn "clear\n";
-      $self->clear;
-    }
+
+    my $height = delete $spec->{height};
+    $height ? $self->height($height) : $self->clear;
 warn p($self);
     foreach my $attr (keys %$spec){
       $self->$attr($spec->{$attr});
     }
 warn $self->dump_all;
 warn "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
+
+  # check for bottom of page
+#  $self->margin_top($self->margin_top + $self->margin_bottom)
+#    if $self->margin_bottom < 0 && $self->margin_top > 0;
+
+  if ($type eq 'parent'){
+    warn "updating ".$self->name."\n";
     if ($self->sibling){
       $self->sibling->auto_adjust('parent');
     } elsif ($self->parent){
@@ -144,11 +145,12 @@ sub get_spec{
     $spec->{margin_top}  = $self->max_height;
   }
 
+  # set height to put margin_bottom just below last child's margin_bottom.
   if (@{$self->children} && !$self->pressure_height){
     my $margin_bottom = $self->children->[-1]->margin_bottom
-                              - $self->padding->[2]
-                              - $self->border->[2]
-                              - $self->margin->[2];
+                              + $self->padding->[2]
+                              + $self->border->[2]
+                              + $self->margin->[2];
     $spec->{height} = $spec->{margin_top} - $margin_bottom;
 warn "Child: ".$self->children->[-1]->name." margin_bottom = ".$spec->{margin_bottom}."\n";
   }
