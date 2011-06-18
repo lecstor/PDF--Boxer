@@ -13,12 +13,12 @@ use_ok('PDF::Boxer::Doc');
 use_ok('PDF::Boxer::SpecParser');
 
 my $spec = <<'__EOP__';
-<box name="Main" max_width="595" max_height="842">
-  <box name="Header" pressure_height="0">
-    <box name="Header Left" padding="0" width="320" pressure_height="0">
+<box name="Main" max_width="595" max_height="842" pressure_width="1" pressure_height="1">
+  <box name="Header" pressure_width="1">
+    <box name="Header Left" padding="0" width="320">
       <image src="t/lecstor.gif" name="Lecstor Logo" align="center" valign="center" padding="10" scale="60" />
     </box>
-    <box name="Header Right" padding="10" border="0" border_color="green" pressure_height="0">
+    <box name="Header Right" padding="10" border="0" border_color="green" pressure_width="1">
       <text name="Address1" padding="3" border="0" align="right" size="20" border_color="steelblue">
         Lecstor Pty Ltd
       </text>
@@ -29,15 +29,15 @@ my $spec = <<'__EOP__';
       </text>
     </box>
 
-    <box name="Details" border="1" height="80" pressure_height="0">
-      <box name="Recipient" width="300" padding="20" pressure_height="0">
+    <box name="Details" border="1" height="80" pressure_width="1">
+      <box name="Recipient" width="300" padding="20">
         <text name="Address" size="14">
           Mr G Client
           Shop 2 Some Centre, Retail Rd
           Somewhere, NSW 2000
         </text>
       </box>
-      <box name="Invoice" padding="20" pressure_height="0">
+      <box name="Invoice" padding="20" pressure_width="1">
         <text name="Issued" size="14" align="right">
           Tax Invoice No. 123
           Issued 01/01/2011
@@ -46,8 +46,8 @@ my $spec = <<'__EOP__';
       </box>
     </box>
   </box>
-  <box name="Content" border="3"></box>
-  <box name="Footer" border="3">
+  <box name="Content" border="3" pressure_width="1" pressure_height="1"></box>
+  <box name="Footer" border="3" pressure_width="1">
     <text name="FootText" size="14">
       Mr G Client
       Shop 2 Some Centre, Retail Rd

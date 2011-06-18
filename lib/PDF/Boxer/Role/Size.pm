@@ -6,7 +6,7 @@ requires qw!margin border padding!;
 has 'max_width' => ( isa => 'Int', is => 'rw', required => 1 );
 has 'max_height' => ( isa => 'Int', is => 'rw', required => 1 );
 
-has 'pressure' => ( isa => 'Bool', is => 'ro', default => 1 );
+has 'pressure' => ( isa => 'Bool', is => 'ro', default => 0 );
 has 'pressure_width' => ( isa => 'Bool', is => 'ro', lazy_build => 1 );
 has 'pressure_height' => ( isa => 'Bool', is => 'ro', lazy_build => 1 );
 
@@ -96,7 +96,7 @@ sub _build_padding_width{
     $val = $self->border_width - ($self->border->[1] + $self->border->[3]);
   } else {
     $val = $self->width + $self->padding->[1] + $self->padding->[3];
-    die "Minimise Box not implemented yet..";
+#    die "Minimise Box not implemented yet..";
   }
   return $val;
 }
