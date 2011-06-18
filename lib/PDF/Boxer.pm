@@ -42,7 +42,7 @@ sub add_to_pdf{
 }
 
 sub inflate{
-  my ($self, $spec, $parent, $sibling) = @_;
+  my ($self, $spec, $parent, $older) = @_;
 
   my $contents = delete $spec->{contents};
 
@@ -56,12 +56,12 @@ sub inflate{
     $spec->{margin_left} = $parent->content_left;
     $spec->{margin_top}  = $parent->content_top;
 
-    if ($sibling){
-      if ($sibling->pressure_width){
-        $spec->{margin_top}  = $sibling->margin_bottom - 1;
+    if ($older){
+      if ($older->pressure_width){
+        $spec->{margin_top}  = $older->margin_bottom - 1;
       } else {
-        $spec->{max_width}   = $parent->width - $sibling->margin_right - 1;
-        $spec->{margin_left} = $sibling->margin_right + 1;
+        $spec->{max_width}   = $parent->width - $older->margin_right - 1;
+        $spec->{margin_left} = $older->margin_right + 1;
       }
     }
 
@@ -76,7 +76,7 @@ sub inflate{
   $spec->{debug} = $self->debug;
   $spec->{boxer} = $self;
 
-  $spec->{sibling} = $sibling if $sibling;
+  $spec->{older} = $older if $older;
 
   my $class = 'PDF::Boxer::Box';
   if ($spec->{type} ne 'Box'){
@@ -92,12 +92,21 @@ sub inflate{
   warn sprintf "New Node Created: %s\n", $node->name;
   warn $node->dump_all;
 
-  my $child;
-
   foreach(@$contents){
-    $child = $self->inflate($_, $node, $child);
-    $node->add_to_children($child);
+    $_ = $self->inflate($_, $node, $older);
+    $node->add_to_children($_);
+    $older = $_;
   }
+
+#  my $younger;    
+#  foreach my $node (reverse @$contents){
+#    if ($younger){
+#      my $weak_younger = $younger;
+#      weaken($weak_younger); 
+#      $node->younger($weak_younger);
+#    }
+#    $younger = $node;
+#  }
 
   return $node;
 

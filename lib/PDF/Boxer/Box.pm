@@ -20,7 +20,7 @@ has 'border_color' => ( isa => 'Str', is => 'ro' );
 has 'children'  => ( isa => 'ArrayRef', is => 'rw', default => sub{ [] } );
 #has 'sibling'  => ( isa => 'Object', is => 'ro' );
 has 'older'  => ( isa => 'Object', is => 'ro' );
-has 'younger'  => ( isa => 'Object', is => 'ro' );
+has 'younger'  => ( isa => 'Object', is => 'rw' );
 has 'parent'  => ( isa => 'Object', is => 'ro' );
 
 sub add_to_children{
@@ -104,8 +104,8 @@ warn "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
 
   if ($type eq 'parent'){
     warn "updating ".$self->name."\n";
-    if ($self->sibling){
-      $self->sibling->auto_adjust('parent');
+    if ($self->older){
+      $self->older->auto_adjust('parent');
     } elsif ($self->parent){
       $self->parent->auto_adjust('parent');
     }
@@ -131,12 +131,12 @@ sub get_spec{
     $spec->{margin_left} = $parent->content_left;
     $spec->{margin_top}  = $parent->content_top;
 
-    if (my $sibling = $self->sibling){
-      if ($sibling->pressure_width){
-        $spec->{margin_top}  = $sibling->margin_bottom - 1;
+    if (my $older = $self->older){
+      if ($older->pressure_width){
+        $spec->{margin_top}  = $older->margin_bottom - 1;
       } else {
-        $spec->{max_width}   = $parent->width - $sibling->margin_right - 1;
-        $spec->{margin_left} = $sibling->margin_right + 1;
+        $spec->{max_width}   = $parent->width - $older->margin_right - 1;
+        $spec->{margin_left} = $older->margin_right + 1;
       }
     }
 

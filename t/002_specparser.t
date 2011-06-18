@@ -19,7 +19,7 @@ my $spec = <<'__EOP__';
       <image src="t/lecstor.gif" name="Lecstor Logo" align="center" valign="center" padding="10" scale="60" />
     </box>
     <box name="Header Right" padding="10" border="0" border_color="green" pressure_width="1">
-      <text name="Address1" padding="3" border="0" align="right" size="20" border_color="steelblue">
+      <text name="Address1" padding="3" border="1" align="right" size="20" border_color="steelblue">
         Lecstor Pty Ltd
       </text>
       <text name="Address2" padding="3" align="right" border="0" border_color="grey" size="14" color="black">
