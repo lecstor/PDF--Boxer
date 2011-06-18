@@ -18,9 +18,9 @@ has 'border_color' => ( isa => 'Str', is => 'ro' );
 #has 'display' => ( isa => 'Str', is => 'ro', default => 'inline' );
 
 has 'children'  => ( isa => 'ArrayRef', is => 'rw', default => sub{ [] } );
-#has 'sibling'  => ( isa => 'Object', is => 'ro' );
-has 'older'  => ( isa => 'Object', is => 'ro' );
-has 'younger'  => ( isa => 'Object', is => 'ro' );
+has 'sibling'  => ( isa => 'Object', is => 'ro' );
+#has 'older'  => ( isa => 'Object', is => 'ro' );
+#has 'younger'  => ( isa => 'Object', is => 'ro' );
 has 'parent'  => ( isa => 'Object', is => 'ro' );
 
 sub add_to_children{
