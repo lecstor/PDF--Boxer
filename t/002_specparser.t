@@ -13,7 +13,7 @@ use_ok('PDF::Boxer::Doc');
 use_ok('PDF::Boxer::SpecParser');
 
 my $spec = <<'__EOP__';
-<box name="Main" max_width="595" max_height="842" pressure_width="1" pressure_height="1">
+<box name="Main" max_width="595" max_height="842" pressure_width="1">
   <box name="Header" pressure_width="1">
     <box name="Header Left" padding="0" width="320">
       <image src="t/lecstor.gif" name="Lecstor Logo" align="center" valign="center" padding="10" scale="60" />

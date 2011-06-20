@@ -35,12 +35,12 @@ sub clear_position{
 
 sub _margin_left_set{
   my ($self, $new, $old) = @_;
-  $self->clear;
+  $self->clear_position;
   die "margin_left < 0" if $new < 0;
 }
 sub _margin_top_set{
   my ($self, $new, $old) = @_;
-  $self->clear;
+  $self->clear_position;
   cluck "margin_top $new < 0" if $new < 0;
 }
 

@@ -6,8 +6,9 @@ has 'debug'   => ( isa => 'Bool', is => 'ro', default => 0 );
 has 'margin'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
 has 'border'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
 has 'padding'  => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
+has 'children'  => ( isa => 'ArrayRef', is => 'rw', default => sub{ [] } );
 
-with 'PDF::Boxer::Role::Size', 'PDF::Boxer::Role::Position';
+with 'PDF::Boxer::Role::SizePosition';
 
 has 'boxer' => ( isa => 'PDF::Boxer', is => 'ro' );
 
@@ -17,7 +18,6 @@ has 'background' => ( isa => 'Str', is => 'ro' );
 has 'border_color' => ( isa => 'Str', is => 'ro' );
 #has 'display' => ( isa => 'Str', is => 'ro', default => 'inline' );
 
-has 'children'  => ( isa => 'ArrayRef', is => 'rw', default => sub{ [] } );
 #has 'sibling'  => ( isa => 'Object', is => 'ro' );
 has 'older'  => ( isa => 'Object', is => 'ro' );
 has 'younger'  => ( isa => 'Object', is => 'rw' );
@@ -85,12 +85,24 @@ sub dump_all{
 sub auto_adjust{
   my ($self, $type) = @_;
 
+    # adjust takes sender rel, not recipient rel as arg.
     my $spec = $self->get_spec;
+    $self->adjust($spec, $type );
+
+=pod
+
 warn "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv\n";
 warn $self->dump_all;
 
-    my $height = delete $spec->{height};
-    $height ? $self->height($height) : $self->clear;
+    my $cleared = 0;
+    foreach(qw!width height margin_left margin_top!){
+      my $val = delete $spec->{$_};
+      next unless $val;
+      $self->$_($val);
+      $cleared++;
+    }
+    $self->clear unless $cleared;
+
 warn p($self);
     foreach my $attr (keys %$spec){
       $self->$attr($spec->{$attr});
@@ -98,9 +110,66 @@ warn p($self);
 warn $self->dump_all;
 warn "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
 
+=cut
+
   # check for bottom of page
-#  $self->margin_top($self->margin_top + $self->margin_bottom)
-#    if $self->margin_bottom < 0 && $self->margin_top > 0;
+  if ($self->margin_bottom < 0 && $self->margin_top > 0){
+warn sprintf "!!!!!!!!!! margin_bottom: %s margin_top: %s margin_height: %s\n",
+  $self->margin_bottom, $self->margin_top, $self->margin_height;
+#    $self->adjust({ margin_top => $self->margin_height });
+  }
+
+
+  if ( $self->pressure_height ){
+    if (my $younger = $self->younger){
+      if ($younger->margin_top > $self->margin_bottom){
+        $self->adjust({ margin_bottom => $younger->margin_top + 1 });
+      }
+    }
+  }
+
+  # propogate auto_adjust
+  if ($type eq 'parent'){
+    my $desc = 0;
+    if (@{$self->children}){
+      $self->children->[0]->auto_adjust('parent');
+      $desc = 1;
+    }
+    if ($self->younger){
+      $self->younger->auto_adjust('older');
+      $desc = 1;
+    }
+    # send update signal back up (down?) the tree
+    unless($desc){
+      if ($self->older){
+        $self->older->auto_adjust('younger');
+      } elsif ($self->parent){
+        $self->parent->auto_adjust('child');
+      }
+    }
+  } elsif ($type eq 'younger'){
+    if ($self->older){
+      $self->older->auto_adjust('younger');
+    } elsif ($self->parent){
+      $self->parent->auto_adjust('child');      
+    }
+    if (@{$self->children}){
+      $self->children->[0]->auto_adjust('parent');
+    }
+  } elsif ($type eq 'older'){
+    if ($self->younger){
+      $self->younger->auto_adjust('older');
+    }
+    if (@{$self->children}){
+      $self->children->[0]->auto_adjust('parent');
+    }
+  } elsif ($type eq 'child' && $self->parent){
+    $self->parent->auto_adjust('child');      
+  }
+
+
+
+=pod
 
   if ($type eq 'parent'){
     warn "updating ".$self->name."\n";
@@ -119,6 +188,8 @@ warn "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
       $self->auto_adjust('parent');
     }
   }
+
+=cut
 
 }
 

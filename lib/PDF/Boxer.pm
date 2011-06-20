@@ -34,7 +34,8 @@ sub add_to_pdf{
   my ($self, $spec) = @_;
   
   my $node = $self->inflate($spec);
-  $self->auto_adjust($node, 'children');
+#  $self->auto_adjust($node, 'children');
+  $self->auto_adjust($node, 'parent');
 
   $self->render($node);
   return $node;
@@ -89,24 +90,25 @@ sub inflate{
   my $node = $class->new($spec);
 #  $parent->add_to_children($node) if $parent;
 
+
   warn sprintf "New Node Created: %s\n", $node->name;
   warn $node->dump_all;
 
+  my $child;
   foreach(@$contents){
-    $_ = $self->inflate($_, $node, $older);
-    $node->add_to_children($_);
-    $older = $_;
+    $child = $self->inflate($_, $node, $child);
+    $node->add_to_children($child);
   }
 
-#  my $younger;    
-#  foreach my $node (reverse @$contents){
-#    if ($younger){
-#      my $weak_younger = $younger;
-#      weaken($weak_younger); 
-#      $node->younger($weak_younger);
-#    }
-#    $younger = $node;
-#  }
+  my $younger;    
+  foreach my $node (reverse @{$node->children}){
+    if ($younger){
+      my $weak_younger = $younger;
+      weaken($weak_younger); 
+      $node->younger($weak_younger);
+    }
+    $younger = $node;
+  }
 
   return $node;
 
