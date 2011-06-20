@@ -96,34 +96,35 @@ sub _build_notify_rels{
 # another approach.. when notified to refresh the node checks
 # predefined boundaries and adjusts accordingly.
 sub refresh{
-  my ($self) = @_;
+  my ($self, $sender) = @_;
 
   if (my $parent = $self->parent){
     # I'm inside the parent, my margin should not exceed it's content area.
-    if ($self->margin_left <= $parent->content_left){
-      $self->adjust({ margin_left => $parent->content_left + 1 });
+    if ($self->margin_left < $parent->content_left){
+      $self->adjust({ margin_left => $parent->content_left }, 'self');
     }
-    if ($self->margin_top >= $parent->content_top){
-      $self->adjust({ margin_top => $parent->content_top + 1 });
+    if ($self->margin_top > $parent->content_top){
+      $self->adjust({ margin_top => $parent->content_top }, 'self');
     }
-    if ($self->margin_right >= $parent->content_right){
-      $self->adjust({ margin_width => $self->margin_width - ($self->margin_right - $parent->content_right) });
+    if ($self->margin_right > $parent->content_right){
+      $self->adjust({ margin_width => $self->margin_width - ($self->margin_right - $parent->content_right) }, 'self');
     }
-    if ($self->margin_bottom >= $parent->content_bottom){
-      $self->adjust({ margin_height => $self->margin_height - ($self->margin_bottom - $parent->content_bottom) });
+    if ($self->margin_bottom > $parent->content_bottom){
+#      $self->adjust({ margin_height => $self->margin_height - ($self->margin_bottom - $parent->content_bottom) }, 'self');
+      $self->adjust({ margin_bottom => $parent->content_bottom }, 'self');
     }
   }
 
   if (my $older = $self->older){
     if ($older->pressure_width){
       # older is above
-      if ($self->margin_top >= $older->margin_bottom){
-        $self->adjust({ margin_top => $older->margin_bottom + 1 });
+      if ($self->margin_top > $older->margin_bottom){
+        $self->adjust({ margin_top => $older->margin_bottom }, 'self');
       }
     } else {
       # older is to left
-      if ($self->margin_left <= $older->margin_right){
-        $self->adjust({ margin_left => $older->margin_right });
+      if ($self->margin_left < $older->margin_right){
+        $self->adjust({ margin_left => $older->margin_right }, 'self');
       }
     }
   }
@@ -131,13 +132,13 @@ sub refresh{
   if (my $younger = $self->younger){
     if ($self->pressure_width){
       # younger is below
-      if ($self->margin_bottom <= $younger->margin_top){
-        $self->adjust({ margin_bottom => $younger->margin_top - 1 });
+      if ($self->margin_bottom < $younger->margin_top){
+        $self->adjust({ margin_bottom => $younger->margin_top }, 'self');
       }
     } else {
       # younger is to right
-      if ($self->margin_right >= $younger->margin_left){
-        $self->adjust({ margin_width => $self->margin_width - ($self->margin_right - $younger->margin_left) });
+      if ($self->margin_right > $younger->margin_left){
+        $self->adjust({ margin_width => $self->margin_width - ($self->margin_right - $younger->margin_left) }, 'self');
       }
     }
   }
@@ -147,10 +148,48 @@ sub refresh{
     foreach(@childs){
       $low_margin = $_->margin_bottom if $_->margin_bottom < $low_margin;
     }
-    if ($self->content_bottom >= $low_margin){
-      $self->adjust({ content_bottom => $low_margin + 1 });
+    if ($self->content_bottom > $low_margin){
+      $self->adjust({ content_bottom => $low_margin }, 'self');
     }
 
+  }
+
+  if ($sender eq 'parent'){
+    my $desc = 0;
+    if (@{$self->children}){
+      $self->children->[0]->refresh('parent');
+      $desc = 1;
+    }
+    if ($self->younger){
+      $self->younger->refresh('older');
+      $desc = 1;
+    }
+    # send update signal back up (down?) the tree
+    unless($desc){
+      if ($self->older){
+        $self->older->refresh('younger');
+      } elsif ($self->parent){
+        $self->parent->refresh('child');
+      }
+    }
+  } elsif ($sender eq 'younger'){
+    if ($self->older){
+      $self->older->refresh('younger');
+    } elsif ($self->parent){
+      $self->parent->refresh('child');      
+    }
+    if (@{$self->children}){
+      $self->children->[0]->refresh('parent');
+    }
+  } elsif ($sender eq 'older'){
+    if ($self->younger){
+      $self->younger->refresh('older');
+    }
+    if (@{$self->children}){
+      $self->children->[0]->refresh('parent');
+    }
+  } elsif ($sender eq 'child' && $self->parent){
+    $self->parent->refresh('child');      
   }
 
 }
@@ -182,6 +221,10 @@ warn $self->name." adjust from $sender ".Data::Dumper->Dumper($spec);
       $self->clear_height if $self->pressure_height && !$spec->{height};
     }
   }
+
+  $self->refresh($sender);
+
+=pod
 
   if ($self->older){
     if ($self->older->pressure_width){
@@ -322,7 +365,7 @@ warn $self->name." adjust from $sender ".Data::Dumper->Dumper($spec);
   }
 
 
-
+=cut
 
 #  warn "== Adjust Done ==\n";
 #  warn $self->dump_position;
