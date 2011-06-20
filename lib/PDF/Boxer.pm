@@ -2,9 +2,11 @@ package PDF::Boxer;
 use Moose;
 use namespace::autoclean;
 
-use PDF::Boxer::Box;
+use PDF::Boxer::Content::Box;
 use PDF::Boxer::Content::Text;
 use PDF::Boxer::Content::Image;
+use PDF::Boxer::Content::Row;
+use PDF::Boxer::Content::Column;
 use Try::Tiny;
 use DDP;
 use Scalar::Util qw/weaken/;
@@ -32,9 +34,14 @@ sub parent_box{
 
 sub add_to_pdf{
   my ($self, $spec) = @_;
-  
-  my $node = $self->inflate($spec);
-  $self->auto_adjust($node, 'children');
+
+warn p($spec);
+
+  my $class = 'PDF::Boxer::Content::'.$spec->{type};
+  my $node = $class->new($spec);
+
+
+#  $self->auto_adjust($node, 'children');
 
   $self->render($node);
   return $node;
@@ -43,6 +50,13 @@ sub add_to_pdf{
 
 sub inflate{
   my ($self, $spec, $parent, $sibling) = @_;
+
+  $spec->{parent} = $weak_parent;
+
+  my $class = 'PDF::Boxer::Content::'.$spec->{type};
+  my $node = $class->new($spec);
+
+
 
   my $contents = delete $spec->{contents};
 
@@ -72,16 +86,12 @@ sub inflate{
     $spec->{margin_top}  = $self->max_height;
   }
 
-  $spec->{type} ||= 'Box';
   $spec->{debug} = $self->debug;
   $spec->{boxer} = $self;
 
   $spec->{sibling} = $sibling if $sibling;
 
-  my $class = 'PDF::Boxer::Box';
-  if ($spec->{type} ne 'Box'){
-    $class = 'PDF::Boxer::Content::'.$spec->{type};
-  }
+  my $class = 'PDF::Boxer::Content::'.$spec->{type};
 
 #  warn "Create Node with Spec:\n".p($spec)."\n";
 #  warn "Create Node with Spec:\n".Data::Dumper->Dumper($spec)."\n";

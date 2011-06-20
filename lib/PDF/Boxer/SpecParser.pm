@@ -18,7 +18,7 @@ sub parse{
 
   my $spec = {};
   $self->mangle_spec($spec, $data);
-  $spec = $spec->{contents}[0];
+  $spec = $spec->{children}[0];
 
   return $spec;
 }
@@ -47,11 +47,18 @@ sub mangle_spec{
     } elsif (lc($tag) eq 'image'){
 #warn Data::Dumper->Dumper($spec, $element);
       $element->[0]{type} = 'Image';
-      push(@{$spec->{contents}}, shift @$element);
-
+      push(@{$spec->{children}}, shift @$element);
+    } elsif (lc($tag) eq 'row'){
+      $element->[0]{type} = 'Row';
+      push(@{$spec->{children}}, shift @$element);
+      $self->mangle_spec($spec->{children}->[-1], $element);
+    } elsif (lc($tag) eq 'column'){
+      $element->[0]{type} = 'Column';
+      push(@{$spec->{children}}, shift @$element);
+      $self->mangle_spec($spec->{children}->[-1], $element);
     } else {
-      push(@{$spec->{contents}}, shift @$element);
-      $self->mangle_spec($spec->{contents}->[-1], $element);
+      push(@{$spec->{children}}, shift @$element);
+      $self->mangle_spec($spec->{children}->[-1], $element);
     }
   }
 }
