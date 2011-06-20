@@ -58,8 +58,8 @@ sub BUILDARGS{
 
 sub BUILD{
   my ($self) = @_;
-  die sprintf "not enough room for \"%s\" width: mw: %s > %s", $self->name, $self->margin_width, $self->max_width if $self->has_width && $self->margin_width > $self->max_width;
-  die sprintf "not enough room for \"%s\" height: mh: %s > %s", $self->name, $self->margin_height, $self->max_height if $self->has_height && $self->margin_height > $self->max_height;
+#  die sprintf "not enough room for \"%s\" width: mw: %s > %s", $self->name, $self->margin_width, $self->max_width if $self->has_width && $self->margin_width > $self->max_width;
+#  die sprintf "not enough room for \"%s\" height: mh: %s > %s", $self->name, $self->margin_height, $self->max_height if $self->has_height && $self->margin_height > $self->max_height;
 }
 
 sub clear{
@@ -113,20 +113,22 @@ warn "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
 =cut
 
   # check for bottom of page
-  if ($self->margin_bottom < 0 && $self->margin_top > 0){
-warn sprintf "!!!!!!!!!! margin_bottom: %s margin_top: %s margin_height: %s\n",
-  $self->margin_bottom, $self->margin_top, $self->margin_height;
-#    $self->adjust({ margin_top => $self->margin_height });
-  }
+#  if ($self->margin_bottom < 0 && $self->margin_top > 0){
+#warn sprintf "!!!!!!!!!! margin_bottom: %s margin_top: %s margin_height: %s\n",
+#  $self->margin_bottom, $self->margin_top, $self->margin_height;
+#    $self->adjust({ margin_top => $self->margin_height }, 'self');
+#  }
 
 
-  if ( $self->pressure_height ){
-    if (my $younger = $self->younger){
-      if ($younger->margin_top > $self->margin_bottom){
-        $self->adjust({ margin_bottom => $younger->margin_top + 1 });
-      }
-    }
-  }
+#  if ( $self->pressure_height ){
+#    if (my $younger = $self->younger){
+#      if ($younger->margin_top > $self->margin_bottom){
+#        $self->adjust({ margin_bottom => $younger->margin_top + 1 }, 'self');
+#      }
+#    }
+#  }
+
+=pod
 
   # propogate auto_adjust
   if ($type eq 'parent'){
@@ -204,10 +206,10 @@ sub get_spec{
 
     if (my $older = $self->older){
       if ($older->pressure_width){
-        $spec->{margin_top}  = $older->margin_bottom - 1;
+        $spec->{margin_top}  = $self->limit_to_page_height($older->margin_bottom - 1);
       } else {
-        $spec->{max_width}   = $parent->width - $older->margin_right - 1;
-        $spec->{margin_left} = $older->margin_right + 1;
+        $spec->{max_width}   = $self->limit_to_page_width($parent->width - $older->margin_right - 1);
+        $spec->{margin_left} = $self->limit_to_page_width($older->margin_right + 1);
       }
     }
 
@@ -218,6 +220,8 @@ sub get_spec{
     $spec->{margin_top}  = $self->max_height;
   }
 
+#=pod
+
   # set height to put margin_bottom just below last child's margin_bottom.
   if (@{$self->children} && !$self->pressure_height){
     my $margin_bottom = $self->children->[-1]->margin_bottom
@@ -225,8 +229,11 @@ sub get_spec{
                               + $self->border->[2]
                               + $self->margin->[2];
     $spec->{height} = $spec->{margin_top} - $margin_bottom;
-warn "Child: ".$self->children->[-1]->name." margin_bottom = ".$spec->{margin_bottom}."\n";
+warn "Child: ".$self->children->[-1]->name." margin_bottom = ".$self->children->[-1]->margin_bottom."\n";
+warn sprintf "   height (%s) = %s - %s\n", $spec->{height}, $spec->{margin_top}, $margin_bottom;
   }
+
+#=cut
 
   return $spec;
 }

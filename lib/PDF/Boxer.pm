@@ -35,7 +35,7 @@ sub add_to_pdf{
   
   my $node = $self->inflate($spec);
 #  $self->auto_adjust($node, 'children');
-  $self->auto_adjust($node, 'parent');
+#  $self->auto_adjust($node, 'parent');
 
   $self->render($node);
   return $node;
@@ -59,9 +59,13 @@ sub inflate{
 
     if ($older){
       if ($older->pressure_width){
-        $spec->{margin_top}  = $older->margin_bottom - 1;
+        my $margin_top = $older->margin_bottom - 1;
+        $margin_top = 0 if $margin_top < 0;
+        $spec->{margin_top} = $margin_top;
       } else {
-        $spec->{max_width}   = $parent->width - $older->margin_right - 1;
+        my $max_width = $parent->width - $older->margin_right - 1;
+        $max_width = 0 if $max_width < 0;
+        $spec->{max_width}   = $max_width;
         $spec->{margin_left} = $older->margin_right + 1;
       }
     }
@@ -88,11 +92,14 @@ sub inflate{
 #  warn "Create Node with Spec:\n".Data::Dumper->Dumper($spec)."\n";
 
   my $node = $class->new($spec);
+  warn sprintf "\n\nFresh Node: %s\n", $node->name;
+  $node->dump_all;
+
 #  $parent->add_to_children($node) if $parent;
 
-
-  warn sprintf "New Node Created: %s\n", $node->name;
-  warn $node->dump_all;
+  $node->auto_adjust('child');
+  warn sprintf "\n\nAdjust Fresh Node: %s\n", $node->name;
+  $node->dump_all;
 
   my $child;
   foreach(@$contents){

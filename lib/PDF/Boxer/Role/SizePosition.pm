@@ -1,42 +1,53 @@
 package PDF::Boxer::Role::SizePosition;
 use Moose::Role;
+use Moose::Util::TypeConstraints;
 
 use Carp qw(cluck);
 
 requires qw!margin border padding children!;
 
-has 'max_width' => ( isa => 'Int', is => 'rw', required => 1 );
-has 'max_height' => ( isa => 'Int', is => 'rw', required => 1 );
+subtype 'HCoord',
+    as 'Int',
+    where { $_ >= 0 && $_ <= 595 },
+    message { "HCoord '$_' out of bounds" };
 
-has 'width' => ( isa => 'Int', is => 'rw', lazy_build => 1, ); #trigger => \&_width_set );
-has 'height' => ( isa => 'Int', is => 'rw', lazy_build => 1, ); #trigger => \&_height_set );
+subtype 'VCoord',
+    as 'Int',
+    where { $_ >= 0 && $_ <= 842 },
+    message { "VCoord '$_' out of bounds" };
 
-has 'margin_left' => ( isa => 'Int', is => 'rw', lazy_build => 1 ); # required => 1, ); #trigger => \&_margin_left_set );
-has 'margin_top'  => ( isa => 'Int', is => 'rw', lazy_build => 1 ); # required => 1, ); #trigger => \&_margin_top_set );
+has 'max_width' => ( isa => 'HCoord', is => 'rw', required => 1 );
+has 'max_height' => ( isa => 'VCoord', is => 'rw', required => 1 );
 
-has 'margin_right' => ( isa => 'Int', is => 'rw', lazy_build => 1 );
-has 'margin_bottom'  => ( isa => 'Int', is => 'rw', lazy_build => 1 );
+has 'width' => ( isa => 'HCoord', is => 'rw', lazy_build => 1, ); #trigger => \&_width_set );
+has 'height' => ( isa => 'VCoord', is => 'rw', lazy_build => 1, ); #trigger => \&_height_set );
 
-has 'border_left' => ( isa => 'Int', is => 'ro', lazy_build => 1 );
-has 'border_top'  => ( isa => 'Int', is => 'ro', lazy_build => 1 );
+has 'margin_left' => ( isa => 'HCoord', is => 'rw', lazy_build => 1 ); # required => 1, ); #trigger => \&_margin_left_set );
+has 'margin_top'  => ( isa => 'VCoord', is => 'rw', lazy_build => 1 ); # required => 1, ); #trigger => \&_margin_top_set );
 
-has 'padding_left' => ( isa => 'Int', is => 'ro', lazy_build => 1 );
-has 'padding_top'  => ( isa => 'Int', is => 'ro', lazy_build => 1 );
+has 'margin_right' => ( isa => 'HCoord', is => 'rw', lazy_build => 1 );
+has 'margin_bottom'  => ( isa => 'VCoord', is => 'rw', lazy_build => 1 );
 
-has 'content_left' => ( isa => 'Int', is => 'ro', lazy_build => 1 );
-has 'content_top'  => ( isa => 'Int', is => 'ro', lazy_build => 1 );
+has 'border_left' => ( isa => 'HCoord', is => 'ro', lazy_build => 1 );
+has 'border_top'  => ( isa => 'VCoord', is => 'ro', lazy_build => 1 );
 
-has 'content_right' => ( isa => 'Int', is => 'ro', lazy_build => 1 );
-has 'content_bottom'  => ( isa => 'Int', is => 'ro', lazy_build => 1 );
+has 'padding_left' => ( isa => 'HCoord', is => 'ro', lazy_build => 1 );
+has 'padding_top'  => ( isa => 'VCoord', is => 'ro', lazy_build => 1 );
 
-has 'margin_width'    => ( isa => 'Int', is => 'ro', lazy_build => 1 );
-has 'margin_height'   => ( isa => 'Int', is => 'ro', lazy_build => 1 );
+has 'content_left' => ( isa => 'HCoord', is => 'ro', lazy_build => 1 );
+has 'content_top'  => ( isa => 'VCoord', is => 'ro', lazy_build => 1 );
 
-has 'border_width'    => ( isa => 'Int', is => 'ro', lazy_build => 1 );
-has 'border_height'   => ( isa => 'Int', is => 'ro', lazy_build => 1 );
+has 'content_right' => ( isa => 'HCoord', is => 'rw', lazy_build => 1 );
+has 'content_bottom'  => ( isa => 'VCoord', is => 'rw', lazy_build => 1 );
 
-has 'padding_width'    => ( isa => 'Int', is => 'ro', lazy_build => 1 );
-has 'padding_height'   => ( isa => 'Int', is => 'ro', lazy_build => 1 );
+has 'margin_width'    => ( isa => 'HCoord', is => 'ro', lazy_build => 1 );
+has 'margin_height'   => ( isa => 'VCoord', is => 'ro', lazy_build => 1 );
+
+has 'border_width'    => ( isa => 'HCoord', is => 'ro', lazy_build => 1 );
+has 'border_height'   => ( isa => 'VCoord', is => 'ro', lazy_build => 1 );
+
+has 'padding_width'    => ( isa => 'HCoord', is => 'ro', lazy_build => 1 );
+has 'padding_height'   => ( isa => 'VCoord', is => 'ro', lazy_build => 1 );
 
 
 has 'pressure' => ( isa => 'Bool', is => 'ro', default => 0 );
@@ -82,6 +93,68 @@ sub _build_notify_rels{
   };
 }
 
+# another approach.. when notified to refresh the node checks
+# predefined boundaries and adjusts accordingly.
+sub refresh{
+  my ($self) = @_;
+
+  if (my $parent = $self->parent){
+    # I'm inside the parent, my margin should not exceed it's content area.
+    if ($self->margin_left <= $parent->content_left){
+      $self->adjust({ margin_left => $parent->content_left + 1 });
+    }
+    if ($self->margin_top >= $parent->content_top){
+      $self->adjust({ margin_top => $parent->content_top + 1 });
+    }
+    if ($self->margin_right >= $parent->content_right){
+      $self->adjust({ margin_width => $self->margin_width - ($self->margin_right - $parent->content_right) });
+    }
+    if ($self->margin_bottom >= $parent->content_bottom){
+      $self->adjust({ margin_height => $self->margin_height - ($self->margin_bottom - $parent->content_bottom) });
+    }
+  }
+
+  if (my $older = $self->older){
+    if ($older->pressure_width){
+      # older is above
+      if ($self->margin_top >= $older->margin_bottom){
+        $self->adjust({ margin_top => $older->margin_bottom + 1 });
+      }
+    } else {
+      # older is to left
+      if ($self->margin_left <= $older->margin_right){
+        $self->adjust({ margin_left => $older->margin_right });
+      }
+    }
+  }
+
+  if (my $younger = $self->younger){
+    if ($self->pressure_width){
+      # younger is below
+      if ($self->margin_bottom <= $younger->margin_top){
+        $self->adjust({ margin_bottom => $younger->margin_top - 1 });
+      }
+    } else {
+      # younger is to right
+      if ($self->margin_right >= $younger->margin_left){
+        $self->adjust({ margin_width => $self->margin_width - ($self->margin_right - $younger->margin_left) });
+      }
+    }
+  }
+
+  if (my @childs = @{$self->children}){
+    my $low_margin = shift(@childs)->margin_bottom;
+    foreach(@childs){
+      $low_margin = $_->margin_bottom if $_->margin_bottom < $low_margin;
+    }
+    if ($self->content_bottom >= $low_margin){
+      $self->adjust({ content_bottom => $low_margin + 1 });
+    }
+
+  }
+
+}
+
 =item adjust
 
 takes values for any of the predefined size and location attributes.
@@ -92,6 +165,8 @@ Decides what to do about it..
 
 sub adjust{
   my ($self, $spec, $sender) = @_;
+
+warn $self->name." adjust from $sender ".Data::Dumper->Dumper($spec);
 
   foreach my $attr (keys %$spec){
     $self->$attr($spec->{$attr});
@@ -108,6 +183,33 @@ sub adjust{
     }
   }
 
+  if ($self->older){
+    if ($self->older->pressure_width){
+      # older is above us
+      if ($self->margin_top > $self->older->margin_bottom){
+        $self->older->adjust({ margin_bottom => $self->limit_to_page_height($self->margin_top - 1) });
+      }
+    } else {
+      # older is to our left
+    }
+  
+  }
+
+  if ($self->parent){
+    if ($self->parent->content_bottom > $self->margin_bottom){
+      $self->parent->adjust({ content_bottom => $self->margin_bottom + 1 });
+    }
+  }
+
+#  if ( $self->pressure_height ){
+#    if (my $younger = $self->younger){
+#      if ($younger->margin_top > $self->margin_bottom){
+#        $self->adjust({ margin_bottom => $younger->margin_top + 1 }, 'self');
+#      }
+#    }
+#  }
+
+
   foreach my $attr (keys %$spec){
 #    if ($attr eq 'max_width'){
 #      $self->younger->adjust({ margin_left => $self->margin_right + 1 }) if ! $self->pressure_width;
@@ -117,36 +219,114 @@ sub adjust{
 #    }
     if ($sender ne 'younger' && $self->younger){
       if ($attr eq 'width' || $attr eq 'margin_width'){
-        $self->younger->adjust({ margin_left => $self->margin_right + 1 }, 'older') if ! $self->pressure_width;
+        if ( !$self->pressure_width ){  # we're next to younger sibling
+          $self->younger->adjust({ 
+            margin_left => $self->limit_to_page_width($self->margin_right + 1)
+          }, 'older');
+          if ($self->margin_right >= $self->younger->margin_left){
+            $self->adjust({ margin_right => $self->younger->margin_left - 1 });
+          }
+        }
       }
       if ($attr eq 'height' || $attr eq 'margin_height'){
-        $self->younger->adjust({ margin_top => $self->margin_bottom - 1 }, 'older') if $self->pressure_width;
+        if ( $self->pressure_width ){  # we're above younger sibling
+          $self->younger->adjust({
+            margin_top => $self->limit_to_page_height($self->margin_bottom - 1)
+          }, 'older') if $self->pressure_width;
+          if ($self->margin_bottom >= $self->younger->margin_top){
+            $self->adjust({ margin_bottom => $self->younger->margin_top + 1 });
+          }
+        }
       }
       if ($attr eq 'margin_left'){
-        $self->younger->adjust({ margin_left => $self->margin_right + 1 }, 'older') if ! $self->pressure_width;
+        if ( !$self->pressure_width ){  # we're next to younger sibling
+          $self->younger->adjust({
+            margin_left => $self->limit_to_page_width($self->margin_right + 1)
+          }, 'older') if ! $self->pressure_width;
+          if ($self->margin_right >= $self->younger->margin_left){
+            $self->adjust({ margin_right => $self->younger->margin_left - 1 });
+          }
+        }
       }
       if ($attr eq 'margin_right'){
-        $self->younger->adjust({ margin_left => $self->margin_right + 1 }, 'older') if ! $self->pressure_width;
+        if ( !$self->pressure_width ){  # we're next to younger sibling
+          $self->younger->adjust({
+            margin_left => $self->limit_to_page_width($self->margin_right + 1)
+          }, 'older') if ! $self->pressure_width;
+#          if ($self->margin_right >= $self->younger->margin_left){
+#            $self->adjust({ margin_right => $self->younger->margin_left - 1 });
+#          }
+        }
       }
       if ($attr eq 'margin_bottom'){
-        $self->younger->adjust({ margin_top => $self->margin_bottom - 1 }, 'older') if ! $self->pressure_width;
+        $self->younger->adjust({
+          margin_top => $self->limit_to_page_height($self->margin_bottom - 1)
+        }, 'older') if ! $self->pressure_width;
       }
     }
 
     if ($sender ne 'older' && $self->older){
       if ($attr eq 'margin_left'){
-        $self->older->adjust({ margin_right => $self->margin_left - 1 }, 'younger' ) if ! $self->older->pressure_width;
+        $self->older->adjust({
+          margin_right => $self->limit_to_page_width($self->margin_left - 1)
+        }, 'younger' ) if ! $self->older->pressure_width;
       }
       if ($attr eq 'margin_right'){
-        $self->older->adjust({ margin_left => $self->margin_right + 1 }, 'younger' ) if ! $self->older->pressure_width;
+        $self->older->adjust({ 
+          margin_left => $self->limit_to_page_width($self->margin_right + 1)
+        }, 'younger' ) if ! $self->older->pressure_width;
       }
     }
 
   }
 
-  warn "== Adjust Done ==\n";
-  warn $self->dump_position;
-  warn $self->dump_size;
+  warn sprintf "Adjusted Node: %s\n", $self->name;
+  $self->dump_all;
+
+  if ($sender eq 'parent'){
+    my $desc = 0;
+    if (@{$self->children}){
+      $self->children->[0]->auto_adjust('parent');
+      $desc = 1;
+    }
+    if ($self->younger){
+      $self->younger->auto_adjust('older');
+      $desc = 1;
+    }
+    # send update signal back up (down?) the tree
+    unless($desc){
+      if ($self->older){
+        $self->older->auto_adjust('younger');
+      } elsif ($self->parent){
+        $self->parent->auto_adjust('child');
+      }
+    }
+  } elsif ($sender eq 'younger'){
+    if ($self->older){
+      $self->older->auto_adjust('younger');
+    } elsif ($self->parent){
+      $self->parent->auto_adjust('child');      
+    }
+    if (@{$self->children}){
+      $self->children->[0]->auto_adjust('parent');
+    }
+  } elsif ($sender eq 'older'){
+    if ($self->younger){
+      $self->younger->auto_adjust('older');
+    }
+    if (@{$self->children}){
+      $self->children->[0]->auto_adjust('parent');
+    }
+  } elsif ($sender eq 'child' && $self->parent){
+    $self->parent->auto_adjust('child');      
+  }
+
+
+
+
+#  warn "== Adjust Done ==\n";
+#  warn $self->dump_position;
+#  warn $self->dump_size;
 
 }
 
@@ -193,13 +373,17 @@ sub _build_margin_right{
 
 sub _build_margin_top{
   my ($self) = @_;
-  return $self->margin_bottom + $self->margin_height;
+  my $pos = $self->margin_bottom + $self->margin_height;
+  my $spacing = 0;
+  return $self->limit_to_page_height($pos,$spacing);
 }
 
 sub _build_margin_bottom{
   my ($self) = @_;
-warn sprintf "margin bottom = %s - %s", $self->margin_top, $self->margin_height;
-  return $self->margin_top - $self->margin_height;
+warn sprintf "margin bottom = mt %s - mh %s", $self->margin_top, $self->margin_height;
+  my $pos = $self->margin_top - $self->margin_height;
+  my $spacing = 0;
+  return $self->limit_to_page_height($pos,$spacing);
 }
 
 sub _build_border_left{
@@ -219,7 +403,9 @@ sub _build_padding_left{
 
 sub _build_padding_top{
   my ($self) = @_;
-  return $self->border_top - $self->border->[0];
+  my $pos = $self->border_top - $self->border->[0];
+  my $spacing = $self->border->[0] + $self->margin->[0];
+  return $self->limit_to_page_height($pos,$spacing);
 }
 
 sub _build_content_left{
@@ -229,7 +415,9 @@ sub _build_content_left{
 
 sub _build_content_top{
   my ($self) = @_;
-  return $self->padding_top - $self->padding->[0];
+  my $pos = $self->padding_top - $self->padding->[0];
+  my $spacing = $self->padding->[2] + $self->border->[2] + $self->margin->[2];
+  return $self->limit_to_page_height($pos,$spacing);
 }
 
 sub _build_content_right{
@@ -242,10 +430,34 @@ warn sprintf "Content right: %s + %s", $self->content_left, $self->width;
 
 sub _build_content_bottom{
   my ($self) = @_;
-  return $self->content_top - $self->height;
+  my $pos = $self->content_top - $self->height;
+  my $spacing = $self->padding->[2] + $self->border->[2] + $self->margin->[2];
+  return $self->limit_to_page_height($pos,$spacing);
 }
 
+sub limit_to_page_height{
+  my ($self, $val, $spacing) = @_;
+  $spacing ||= 0;
+  if ($val < 0 + $spacing){
+    return $spacing;
+  }
+  if ($val > $self->boxer->max_height - $spacing){
+    return $self->boxer->max_height - $spacing;
+  }
+  return $val;
+}
 
+sub limit_to_page_width{
+  my ($self, $val, $spacing) = @_;
+  $spacing ||= 0;
+  if ($val < 0 + $spacing){
+    return $spacing;
+  }
+  if ($val > $self->boxer->max_width - $spacing){
+    return $self->boxer->max_width - $spacing;
+  }
+  return $val;
+}
 
 sub _width_set{ shift->clear }
 sub _height_set{ shift->clear }
@@ -259,7 +471,8 @@ sub _build_width{
     $val = $self->_width_from_child;
 warn ">>>>> Size build width min: $val\n"; 
   }
-  return $val;
+  my $spacing = $self->padding->[1] + $self->border->[1] + $self->margin->[1];
+  return $self->limit_to_page_height($val,$spacing);
 }
 
 sub _build_height{
@@ -268,9 +481,13 @@ sub _build_height{
   if ($self->pressure_height){
     $val = $self->padding_height - ($self->padding->[0] + $self->padding->[2]);
   } else {
-    $val = $self->_height_from_child;
+    $val = $self->_height_from_child - ($self->padding->[0] + $self->padding->[2]);
 warn ">>>>> Size build height min: $val\n"; 
   }
+
+  my $spacing = $self->padding->[2] + $self->border->[2] + $self->margin->[2];
+  return $self->limit_to_page_height($val,$spacing);
+
   return $val;
 }
 
