@@ -41,7 +41,7 @@ sub baseline_top{
 around 'render' => sub{
   my ($orig, $self) = @_;
 
-  $self->dump_all;
+#  $self->dump_all;
 
   my $text = $self->boxer->doc->text;
 
@@ -87,8 +87,8 @@ sub dump_attr{
   my @lines = (
     '== Text Attr ==',
     (sprintf 'Text: %s', "\n\t".join("\n\t", @{$self->value})),
-    (sprintf 'Size: %s', $self->size),
-    (sprintf 'Color: %s', $self->color),
+    (sprintf 'Size: %s', $self->size || 'none'),
+    (sprintf 'Color: %s', $self->color || 'none'),
   );
   $_ .= "\n" foreach @lines;
   return join('', @lines);

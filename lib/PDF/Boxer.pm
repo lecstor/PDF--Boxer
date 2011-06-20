@@ -40,16 +40,13 @@ warn p($spec);
   my $class = 'PDF::Boxer::Content::'.$spec->{type};
   my $node = $class->new($spec);
 
-
-#  $self->auto_adjust($node, 'children');
-
   $self->render($node);
   return $node;
  
 }
 
 sub inflate{
-  my ($self, $spec, $parent, $sibling) = @_;
+  my ($self, $spec, $parent, $older) = @_;
 
   $spec->{parent} = $weak_parent;
 
@@ -70,12 +67,16 @@ sub inflate{
     $spec->{margin_left} = $parent->content_left;
     $spec->{margin_top}  = $parent->content_top;
 
-    if ($sibling){
-      if ($sibling->pressure_width){
-        $spec->{margin_top}  = $sibling->margin_bottom - 1;
+    if ($older){
+      if ($older->pressure_width){
+        my $margin_top = $older->margin_bottom - 1;
+        $margin_top = 0 if $margin_top < 0;
+        $spec->{margin_top} = $margin_top;
       } else {
-        $spec->{max_width}   = $parent->width - $sibling->margin_right - 1;
-        $spec->{margin_left} = $sibling->margin_right + 1;
+        my $max_width = $parent->width - $older->margin_right - 1;
+        $max_width = 0 if $max_width < 0;
+        $spec->{max_width}   = $max_width;
+        $spec->{margin_left} = $older->margin_right + 1;
       }
     }
 
@@ -89,7 +90,7 @@ sub inflate{
   $spec->{debug} = $self->debug;
   $spec->{boxer} = $self;
 
-  $spec->{sibling} = $sibling if $sibling;
+  $spec->{older} = $older if $older;
 
   my $class = 'PDF::Boxer::Content::'.$spec->{type};
 
@@ -97,16 +98,29 @@ sub inflate{
 #  warn "Create Node with Spec:\n".Data::Dumper->Dumper($spec)."\n";
 
   my $node = $class->new($spec);
+  warn sprintf "\n\nFresh Node: %s\n", $node->name;
+  $node->dump_all;
+
 #  $parent->add_to_children($node) if $parent;
 
-  warn sprintf "New Node Created: %s\n", $node->name;
-  warn $node->dump_all;
+  $node->auto_adjust('child');
+  warn sprintf "\n\nAdjust Fresh Node: %s\n", $node->name;
+  $node->dump_all;
 
   my $child;
-
   foreach(@$contents){
     $child = $self->inflate($_, $node, $child);
     $node->add_to_children($child);
+  }
+
+  my $younger;    
+  foreach my $node (reverse @{$node->children}){
+    if ($younger){
+      my $weak_younger = $younger;
+      weaken($weak_younger); 
+      $node->younger($weak_younger);
+    }
+    $younger = $node;
   }
 
   return $node;

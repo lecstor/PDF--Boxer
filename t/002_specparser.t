@@ -30,7 +30,6 @@ my $spec = <<'__EOP__';
         </text>
       </box>
     </row>
-
     <row name="Details" border="1" height="80" pressure_width="1">
       <box name="Recipient" width="300" padding="20">
         <text name="Address" size="14">
