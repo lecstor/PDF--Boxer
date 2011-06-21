@@ -2,7 +2,7 @@ package PDF::Boxer::Content::Text;
 use Moose;
 use namespace::autoclean;
 
-extends 'PDF::Boxer::Box';
+extends 'PDF::Boxer::Content::Box';
 
 has 'size' => ( isa => 'Int', is => 'ro' );
 has 'font' => ( isa => 'Str', is => 'ro', default => 'Helvetica' );
@@ -21,9 +21,6 @@ sub _build_lead_spacing{
   return 20/100;
 }
 
-sub _build_pressure_width{ 1 }
-sub _build_pressure_height{ 0 }
-
 sub get_font{
   my ($self) = @_;
   return $self->boxer->doc->font( $self->font );
@@ -38,20 +35,47 @@ sub baseline_top{
   return $self->content_top - $adjust;
 }
 
+sub calculate_minimum_size{
+  my ($self) = @_;
+  my $text = $self->prepare_text;
+  my ($width,$height) = (0,0);
+  foreach(@{$self->value}){
+    my $twidth = $text->advancewidth($_);
+    $width = $width ? (sort($twidth,$width))[1] : $twidth;
+    $height += $self->lead;
+  }
+
+  my $int_width = int($width);
+  $int_width++ if $width > $int_width;
+
+  my $int_height = int($height);
+  $int_height++ if $height > $int_height;
+
+  $self->adjust({
+     width => $int_width,
+     height => $int_height,
+  }, 'self');
+
+  warn $self->dump_size;
+}
+
+sub prepare_text{
+  my ($self) = @_;
+  my $text = $self->boxer->doc->text;
+  my $font = $self->get_font;
+  $text->font($font, $self->size);
+  $text->fillcolor($self->color);
+  $text->lead($self->lead);
+  return $text;
+}
+
 around 'render' => sub{
   my ($orig, $self) = @_;
 
 #  $self->dump_all;
 
-  my $text = $self->boxer->doc->text;
-
+  my $text = $self->prepare_text;
   my $font = $self->get_font;
-
-  $text->font($font, $self->size);
-
-  $text->fillcolor($self->color);
-  
-  $text->lead($self->lead);
 
   my $x = $self->content_left;
   my $y = $self->baseline_top($font, $self->size);

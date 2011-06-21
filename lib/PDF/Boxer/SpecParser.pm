@@ -57,6 +57,7 @@ sub mangle_spec{
       push(@{$spec->{children}}, shift @$element);
       $self->mangle_spec($spec->{children}->[-1], $element);
     } else {
+      $element->[0]{type} = 'Box';
       push(@{$spec->{children}}, shift @$element);
       $self->mangle_spec($spec->{children}->[-1], $element);
     }

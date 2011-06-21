@@ -1,6 +1,8 @@
-package PDF::Boxer::Box;
+package PDF::Boxer::Content::Box;
 use Moose;
 use DDP;
+use Scalar::Util qw/weaken/;
+
 has 'debug'   => ( isa => 'Bool', is => 'ro', default => 0 );
 
 has 'margin'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
@@ -23,12 +25,6 @@ has 'older'  => ( isa => 'Object', is => 'ro' );
 has 'younger'  => ( isa => 'Object', is => 'rw' );
 has 'parent'  => ( isa => 'Object', is => 'ro' );
 
-sub add_to_children{
-  my ($self, $child) = @_;
-  push(@{$self->children}, $child);
-  return $child;
-}
-
 sub BUILDARGS{
   my ($class, $args) = @_;
 
@@ -50,23 +46,106 @@ sub BUILDARGS{
     $args->{$attr} = $val;
   }
 
-  $args->{pressure_width} = 0 if $args->{width};
-  $args->{pressure_height} = 0 if $args->{height};
-
   return $args;
 }
 
 sub BUILD{
   my ($self) = @_;
+  unless($self->parent){
+    $self->adjust({
+      margin_top => $self->boxer->max_height,
+      margin_left => 0,
+      margin_width => $self->boxer->max_width,
+      margin_height => $self->boxer->max_height,
+    },'self');
+  }
+warn "BUILD: ".$self->name."\n";
+warn Data::Dumper->Dumper($self);
+
+  foreach my $child (@{$self->children}){
+    $child->{boxer} = $self->boxer;
+    $child->{debug} = $self->debug;
+    my $weak_me = $self;
+    weaken($weak_me);
+    $child->{parent} = $weak_me;
+    my $class = 'PDF::Boxer::Content::'.$child->{type};
+    $child = $class->new($child);
+  }
 #  die sprintf "not enough room for \"%s\" width: mw: %s > %s", $self->name, $self->margin_width, $self->max_width if $self->has_width && $self->margin_width > $self->max_width;
 #  die sprintf "not enough room for \"%s\" height: mh: %s > %s", $self->name, $self->margin_height, $self->max_height if $self->has_height && $self->margin_height > $self->max_height;
 }
 
-sub clear{
-  my ($self) = @_;
-  $self->clear_size();
-  $self->clear_position();
+sub propagate{
+  my ($self, $method) = @_;
+  return unless $method;
+  my @kids = @{$self->children};
+  if (@kids){
+    foreach my $kid (@kids){
+      $kid->$method();
+    }
+  }
+  return @kids;
 }
+
+sub calculate_minimum_size{
+  my ($self) = @_;
+
+  my @kids = $self->propagate('calculate_minimum_size');
+
+  # the main box should stay wide open.
+  return unless $self->parent;
+
+  my ($width, $height) = (0,0);
+  if (@kids){
+    foreach(@kids){
+      $height+= $_->margin_height;
+      $width = $width ? (sort($_->margin_width,$width))[1] : $_->margin_width;
+    }
+  } else {
+    $width = $self->has_width ? $self->width : 0;
+    $height = $self->has_height ? $self->height : 0;
+  }
+
+  $self->adjust({
+     width => $width,
+     height => $height,
+  }, 'self');
+
+  warn $self->dump_size;
+
+}
+
+sub size_and_position{
+  my ($self) = @_;
+
+  my ($width, $height) = $self->kids_min_size;
+
+  my $kid = $self->children->[0];
+
+  if ($kid){
+    $kid->adjust({
+      margin_left => $self->content_left,
+      margin_top => $self->content_top,
+      margin_width => $self->content_width,
+      margin_height => $self->content_height,
+    },'parent');
+
+    $self->propagate('size_and_position');
+  }
+
+  warn $self->dump_all;
+
+  
+
+}
+
+sub kids_min_size{
+  my ($self) = @_;
+  my $kid = $self->children->[0];
+  return ($kid->margin_width, $kid->margin_height) if $kid;
+  return (0,0);
+}
+
 
 sub dump_all{
   my ($self) = @_;

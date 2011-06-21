@@ -2,7 +2,7 @@ package PDF::Boxer::Role::SizePosition;
 use Moose::Role;
 use Moose::Util::TypeConstraints;
 
-use Carp qw(cluck);
+use Carp;
 
 requires qw!margin border padding children!;
 
@@ -16,8 +16,8 @@ subtype 'VCoord',
     where { $_ >= 0 && $_ <= 842 },
     message { "VCoord '$_' out of bounds" };
 
-has 'max_width' => ( isa => 'HCoord', is => 'rw', required => 1 );
-has 'max_height' => ( isa => 'VCoord', is => 'rw', required => 1 );
+has 'max_width' => ( isa => 'HCoord', is => 'rw' );
+has 'max_height' => ( isa => 'VCoord', is => 'rw' );
 
 has 'width' => ( isa => 'HCoord', is => 'rw', lazy_build => 1, ); #trigger => \&_width_set );
 has 'height' => ( isa => 'VCoord', is => 'rw', lazy_build => 1, ); #trigger => \&_height_set );
@@ -40,19 +40,21 @@ has 'content_top'  => ( isa => 'VCoord', is => 'ro', lazy_build => 1 );
 has 'content_right' => ( isa => 'HCoord', is => 'rw', lazy_build => 1 );
 has 'content_bottom'  => ( isa => 'VCoord', is => 'rw', lazy_build => 1 );
 
-has 'margin_width'    => ( isa => 'HCoord', is => 'ro', lazy_build => 1 );
-has 'margin_height'   => ( isa => 'VCoord', is => 'ro', lazy_build => 1 );
+has 'margin_width'    => ( isa => 'HCoord', is => 'rw', lazy_build => 1 );
+has 'margin_height'   => ( isa => 'VCoord', is => 'rw', lazy_build => 1 );
 
-has 'border_width'    => ( isa => 'HCoord', is => 'ro', lazy_build => 1 );
-has 'border_height'   => ( isa => 'VCoord', is => 'ro', lazy_build => 1 );
+has 'border_width'    => ( isa => 'HCoord', is => 'rw', lazy_build => 1 );
+has 'border_height'   => ( isa => 'VCoord', is => 'rw', lazy_build => 1 );
 
-has 'padding_width'    => ( isa => 'HCoord', is => 'ro', lazy_build => 1 );
-has 'padding_height'   => ( isa => 'VCoord', is => 'ro', lazy_build => 1 );
+has 'padding_width'    => ( isa => 'HCoord', is => 'rw', lazy_build => 1 );
+has 'padding_height'   => ( isa => 'VCoord', is => 'rw', lazy_build => 1 );
 
 
 has 'pressure' => ( isa => 'Bool', is => 'ro', default => 0 );
 has 'pressure_width' => ( isa => 'Bool', is => 'ro', lazy_build => 1 );
 has 'pressure_height' => ( isa => 'Bool', is => 'ro', lazy_build => 1 );
+
+has 'grow' => ( isa => 'Bool', is => 'ro', default => 0 );
 
 has 'attribute_rels' => ( isa => 'HashRef', is => 'ro', lazy_build => 1 );
 
@@ -71,27 +73,87 @@ sub _build_attribute_rels{
   }
 }
 
-sub _build_notify_rels{
-  return {
-    max_width => {
-      younger => { margin_right => 'margin_left' },
-    },
-    max_height => {
-      younger => [qw! margin_bottom !],
-      parent => [qw! margin_bottom !],
-    },
-    width => {
-      younger => [qw! margin_right !],
-      parent => [qw! margin_right !],
-    },
-    height => {
-      younger => [qw! margin_bottom !],
-    },
-    margin_left => {
-      younger => [qw! margin_right !],
-    },
-  };
+# we need to be able to calculate width, height, x & y of lower left corner
+# x: margin_left, content_left, margin_right & margin_width, content_right & content_width
+# y: margin_top, content_top, margin_bottom & margin_height, content_bottom & content_height
+# width: width, margin_width, content_width, margin_left & margin_right, content_left & content_right
+# height: height, margin_height, content_height, margin_top & margin_bottom, content_top & content_bottom
+
+my $req = {
+  horiz => [
+    [qw! margin_left !],
+    [qw! content_left !],
+    [qw! margin_right margin_width !],
+    [qw! content_right content_width !],
+  ],
+  vert => [
+    [qw! margin_top !],
+    [qw! content_top !],
+    [qw! margin_bottom margin_height !],
+    [qw! content_bottom content_height !],
+  ],
+  width => [
+    [qw! width !],
+    [qw! margin_width !],
+    [qw! margin_left margin_right !],
+    [qw! content_left content_right!],
+  ],
+  height => [
+    [qw! height !],
+    [qw! margin_height !],
+    [qw! content_height !],
+    [qw! margin_top margin_bottom !],
+    [qw! content_top content_bottom !],
+  ]
+};
+
+
+sub change_size{
+  my ($self, $width_change, $height_change) = @_;
+  $self->clear_size;
+  $self->width($self->width + $width_change);
+  $self->height($self->height + $height_change);
 }
+
+sub move{
+  my ($self, $horiz, $vert) = @_;
+  $self->clear_position;
+  $self->margin_left($self->margin_left + $horiz);
+  $self->margin_top($self->margin_top + $vert);
+}
+
+sub modify{
+  my ($self, $spec) = @_;
+
+  my $ok = $self->check_modify_spec($spec);
+  unless (scalar keys %$ok == 4){
+    die "Invalid modify spec\n".Data::Dumper->Dumper($spec);
+  }
+
+  $self->clear_position;
+  $self->clear_size;
+
+  foreach my $attr (keys %$spec){
+    $self->$attr($spec->{$attr});
+  }
+
+}
+
+sub check_modify_spec{
+  my ($self, $spec) = @_;
+  my $ok = {};
+  MEAS: foreach my $measure ( keys %$spec){
+    REQ: foreach my $required (@{$spec->{$measure}}){
+      foreach(@$required){
+        next REQ unless $spec->{$_};
+      }
+      $ok->{$measure}++;
+      next MEAS;
+    }
+  }
+  return $ok;
+}
+
 
 # another approach.. when notified to refresh the node checks
 # predefined boundaries and adjusts accordingly.
@@ -214,15 +276,9 @@ warn $self->name." adjust from $sender ".Data::Dumper->Dumper($spec);
       my $clear = 'clear_'.$_;
       $self->$clear();
     }
-    if ($attr eq 'max_width'){
-      $self->clear_width if $self->pressure_width && !$spec->{width};
-    }
-    if ($attr eq 'max_height'){
-      $self->clear_height if $self->pressure_height && !$spec->{height};
-    }
   }
 
-  $self->refresh($sender);
+#  $self->refresh($sender);
 
 =pod
 
@@ -393,20 +449,25 @@ sub clear_size{
   }
 }
 
-sub _margin_left_set{
-  my ($self, $new, $old) = @_;
-  $self->clear_position;
-  die "margin_left < 0" if $new < 0;
-}
-sub _margin_top_set{
-  my ($self, $new, $old) = @_;
-  $self->clear_position;
-  cluck "margin_top $new < 0" if $new < 0;
-}
-
 sub _build_margin_left{
   my ($self) = @_;
-  return $self->margin_right - $self->margin_width;
+  if ($self->has_content_left){
+    return $self->content_left - $self->padding->[3] - $self->border->[3] - $self->margin->[3];
+  } elsif ($self->has_margin_right && $self->has_margin_width){
+    return $self->margin_right - $self->margin_width;
+  } elsif ($self->has_content_right && $self->has_content_width){
+    return $self->content_right - $self->content_width;
+  }
+
+  warn $self->name; #."\n".$self->dump_all."\n";
+  my %tmp = %$self;
+  delete $tmp{boxer};
+  delete $tmp{children};
+  delete $tmp{older};
+  delete $tmp{younger};
+  delete $tmp{parent};
+  warn Data::Dumper->Dumper(\%tmp);
+  die "unable to build margin_left for ".$self->name."\t\t";
 }
 
 sub _build_margin_right{
@@ -416,9 +477,15 @@ sub _build_margin_right{
 
 sub _build_margin_top{
   my ($self) = @_;
-  my $pos = $self->margin_bottom + $self->margin_height;
-  my $spacing = 0;
-  return $self->limit_to_page_height($pos,$spacing);
+  if ($self->has_content_top){
+    return $self->content_top + $self->padding->[0] + $self->border->[0] + $self->margin->[0];
+  } elsif ($self->has_margin_bottom && $self->has_margin_height){
+    return $self->margin_bottom - $self->margin_height;
+  } elsif ($self->has_content_bottom && $self->has_content_height){
+    return $self->content_bottom - $self->content_height;
+  }
+
+  confess "unable to build margin_top for ".$self->name;
 }
 
 sub _build_margin_bottom{
@@ -502,11 +569,19 @@ sub limit_to_page_width{
   return $val;
 }
 
-sub _width_set{ shift->clear }
-sub _height_set{ shift->clear }
-
 sub _build_width{
   my ($self) = @_;
+
+  if ($self->has_margin_width){
+    return $self->margin_width - (($self->padding->[3] + $self->border->[3] + $self->margin->[3])*2);
+  } elsif ($self->has_margin_left && $self->has_margin_right){
+    return $self->margin_right - $self->margin_left - (($self->padding->[3] + $self->border->[3] + $self->margin->[3])*2);
+  } elsif ($self->has_content_left && $self->has_content_right){
+    return $self->content_right - $self->content_left;
+  }
+  die "unable to build margin_left";
+
+
   my $val;
   if ($self->pressure_width){
     $val = $self->padding_width - ($self->padding->[1] + $self->padding->[3]);
@@ -520,6 +595,23 @@ warn ">>>>> Size build width min: $val\n";
 
 sub _build_height{
   my ($self) = @_;
+
+  if ($self->has_margin_height){
+    return $self->margin_height
+      - ($self->padding->[0] + $self->padding->[2]
+        + $self->border->[0] + $self->border->[2] 
+        + $self->margin->[0] + $self->margin->[2]);
+  } elsif ($self->has_margin_left && $self->has_margin_right){
+    return $self->margin_right - $self->margin_left
+      - ($self->padding->[0] + $self->padding->[2]
+        + $self->border->[0] + $self->border->[2] 
+        + $self->margin->[0] + $self->margin->[2]);
+  } elsif ($self->has_content_left && $self->has_content_right){
+    return $self->content_right - $self->content_left;
+  }
+  die "unable to build margin_left";
+
+
   my $val;
   if ($self->pressure_height){
     $val = $self->padding_height - ($self->padding->[0] + $self->padding->[2]);

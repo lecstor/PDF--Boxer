@@ -2,7 +2,7 @@ package PDF::Boxer::Content::Image;
 use Moose;
 use namespace::autoclean;
 
-extends 'PDF::Boxer::Box';
+extends 'PDF::Boxer::Content::Box';
 
 #has 'img_width' => ( isa => 'Int', is => 'ro' );
 #has 'img_height' => ( isa => 'Int', is => 'ro' );
@@ -51,6 +51,14 @@ sub _build_image_height{
     $height = $height * $sc / 100;
   }
   return $height;
+}
+
+sub calculate_minimum_size{
+  my ($self) = @_;
+  $self->width($self->image_width);
+  $self->height($self->image_height);
+
+  warn $self->dump_size;
 }
 
 around 'render' => sub{

@@ -37,18 +37,24 @@ sub add_to_pdf{
 
 warn p($spec);
 
+  my $weak_me = $self;
+  weaken($weak_me);
+  $spec->{boxer} = $weak_me;
+  $spec->{debug} = $self->debug;
+
   my $class = 'PDF::Boxer::Content::'.$spec->{type};
   my $node = $class->new($spec);
+  $node->calculate_minimum_size;
+  $node->size_and_position;
 
-  $self->render($node);
+  $node->render;
   return $node;
- 
 }
 
 sub inflate{
   my ($self, $spec, $parent, $older) = @_;
 
-  $spec->{parent} = $weak_parent;
+#  $spec->{parent} = $weak_parent;
 
   my $class = 'PDF::Boxer::Content::'.$spec->{type};
   my $node = $class->new($spec);
@@ -92,12 +98,12 @@ sub inflate{
 
   $spec->{older} = $older if $older;
 
-  my $class = 'PDF::Boxer::Content::'.$spec->{type};
+  $class = 'PDF::Boxer::Content::'.$spec->{type};
 
 #  warn "Create Node with Spec:\n".p($spec)."\n";
 #  warn "Create Node with Spec:\n".Data::Dumper->Dumper($spec)."\n";
 
-  my $node = $class->new($spec);
+  $node = $class->new($spec);
   warn sprintf "\n\nFresh Node: %s\n", $node->name;
   $node->dump_all;
 
@@ -130,11 +136,6 @@ sub inflate{
 sub auto_adjust{
   my ($self, $node, $type) = @_;
   $node->auto_adjust($type);
-}
-
-sub render{
-  my ($self, $node) = @_;
-  $node->render;
 }
 
 
