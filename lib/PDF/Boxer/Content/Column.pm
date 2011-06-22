@@ -29,7 +29,7 @@ sub calculate_minimum_size{
      height => $height,
   }, 'self');
 
-  warn $self->dump_size;
+#  warn $self->dump_size;
 }
 
 
@@ -83,7 +83,7 @@ warn "w: $width h: $height" if $self->name eq 'Header Right';
     $self->propagate('size_and_position');
   }
   
-  warn $self->dump_all;
+#  warn $self->dump_all;
 }
 
 
@@ -93,7 +93,7 @@ sub kids_min_size{
   my ($width, $height) = (0,0);
   foreach(@kids){
     $height+= $_->margin_height;
-    $width = $width ? (sort($_->margin_width,$width))[1] : $_->margin_width;
+    $width = $width ? (sort { $b <=> $a } ($_->margin_width,$width))[0] : $_->margin_width;
   }
   return ($width, $height);
 }

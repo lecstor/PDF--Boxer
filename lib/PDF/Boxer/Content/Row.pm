@@ -29,7 +29,7 @@ sub calculate_minimum_size{
      height => $height,
   }, 'self');
 
-  warn $self->dump_size;
+#  warn $self->dump_size;
 
 }
 
@@ -79,7 +79,7 @@ sub size_and_position{
     $self->propagate('size_and_position');
   }
 
-  warn $self->dump_all;
+#  warn $self->dump_all;
 
   return; 
 }
@@ -91,7 +91,8 @@ sub kids_min_size{
   my ($width, $height) = (0,0);
   foreach(@kids){
     $width += $_->margin_width;
-    $height = $height ? (sort($_->margin_height,$height))[1] : $_->margin_height;
+    $height = $height ? (sort { $b <=> $a } ($_->margin_height,$height))[0] : $_->margin_height;
+warn sprintf "ROW kids (%s) margin_width: %s width: $width height: %s\n", $_->name, $_->margin_width, $height;
   }
   return ($width, $height);
 }

@@ -3,7 +3,7 @@ use Moose;
 use DDP;
 use Scalar::Util qw/weaken/;
 
-has 'debug'   => ( isa => 'Bool', is => 'ro', default => 0 );
+has 'debug'   => ( isa => 'HashRef', is => 'ro', default => sub{{}} );
 
 has 'margin'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
 has 'border'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
@@ -59,8 +59,8 @@ sub BUILD{
       margin_height => $self->boxer->max_height,
     },'self');
   }
-warn "BUILD: ".$self->name."\n";
-warn Data::Dumper->Dumper($self);
+#warn "BUILD: ".$self->name."\n";
+#warn Data::Dumper->Dumper($self);
 
   foreach my $child (@{$self->children}){
     $child->{boxer} = $self->boxer;
@@ -111,7 +111,7 @@ sub calculate_minimum_size{
      height => $height,
   }, 'self');
 
-  warn $self->dump_size;
+#  warn $self->dump_size;
 
 }
 
@@ -133,7 +133,7 @@ sub size_and_position{
     $self->propagate('size_and_position');
   }
 
-  warn $self->dump_all;
+#  warn $self->dump_all;
 
   
 

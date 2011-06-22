@@ -2,7 +2,7 @@ package PDF::Boxer::Role::SizePosition;
 use Moose::Role;
 use Moose::Util::TypeConstraints;
 
-use Carp;
+use Carp qw(carp croak confess cluck);
 
 requires qw!margin border padding children!;
 
@@ -267,7 +267,10 @@ Decides what to do about it..
 sub adjust{
   my ($self, $spec, $sender) = @_;
 
-warn $self->name." adjust from $sender ".Data::Dumper->Dumper($spec);
+  if ($self->debug->{adjust}{dump}{$self->name}){
+    cluck $self->name." adjust from $sender ".Data::Dumper->Dumper($spec);
+    
+  }
 
   foreach my $attr (keys %$spec){
     $self->$attr($spec->{$attr});

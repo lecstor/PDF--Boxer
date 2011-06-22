@@ -67,7 +67,10 @@ $spec = $parser->parse($spec);
 #warn Data::Dumper->Dumper($spec);
 
 my $boxer = PDF::Boxer->new({
-  debug => 1,
+  debug => { adjust =>  { dump => {
+    Address1 => 1, Address2 => 1, 'Header Right' => 1, 'Header Left' => 1,
+    Head => 1, Header => 1,
+  }}},
   doc => PDF::Boxer::Doc->new({ file => 'test_invoice.pdf' }),
 });
 

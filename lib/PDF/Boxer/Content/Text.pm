@@ -54,9 +54,9 @@ sub calculate_minimum_size{
   $self->adjust({
      width => $int_width,
      height => $int_height,
-  }, 'self');
+  }, 'self-calculate_minimum_size');
 
-  warn $self->dump_size;
+#  warn $self->dump_size;
 }
 
 sub prepare_text{

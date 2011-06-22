@@ -11,7 +11,7 @@ use Try::Tiny;
 use DDP;
 use Scalar::Util qw/weaken/;
 
-has 'debug'   => ( isa => 'Bool', is => 'ro', default => 0 );
+has 'debug'   => ( isa => 'HashRef', is => 'ro', default => sub{{}} );
 
 has 'doc' => ( isa => 'Object', is => 'ro' );
 
@@ -35,7 +35,7 @@ sub parent_box{
 sub add_to_pdf{
   my ($self, $spec) = @_;
 
-warn p($spec);
+#warn p($spec);
 
   my $weak_me = $self;
   weaken($weak_me);
