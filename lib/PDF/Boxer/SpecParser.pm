@@ -18,7 +18,7 @@ sub parse{
 
   my $spec = {};
   $self->mangle_spec($spec, $data);
-  $spec = $spec->{contents}[0];
+  $spec = $spec->{children}[0];
 
   return $spec;
 }
@@ -47,11 +47,19 @@ sub mangle_spec{
     } elsif (lc($tag) eq 'image'){
 #warn Data::Dumper->Dumper($spec, $element);
       $element->[0]{type} = 'Image';
-      push(@{$spec->{contents}}, shift @$element);
-
+      push(@{$spec->{children}}, shift @$element);
+    } elsif (lc($tag) eq 'row'){
+      $element->[0]{type} = 'Row';
+      push(@{$spec->{children}}, shift @$element);
+      $self->mangle_spec($spec->{children}->[-1], $element);
+    } elsif (lc($tag) eq 'column'){
+      $element->[0]{type} = 'Column';
+      push(@{$spec->{children}}, shift @$element);
+      $self->mangle_spec($spec->{children}->[-1], $element);
     } else {
-      push(@{$spec->{contents}}, shift @$element);
-      $self->mangle_spec($spec->{contents}->[-1], $element);
+      $element->[0]{type} = 'Box';
+      push(@{$spec->{children}}, shift @$element);
+      $self->mangle_spec($spec->{children}->[-1], $element);
     }
   }
 }
@@ -59,3 +67,12 @@ sub mangle_spec{
 __PACKAGE__->meta->make_immutable;
 
 1;
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2011 Jason Galea <lecstor at cpan.org>. All rights reserved.
+
+This library is free software and may be distributed under the same terms as perl itself.
+
+=cut
+

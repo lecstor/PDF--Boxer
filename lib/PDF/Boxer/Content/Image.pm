@@ -2,10 +2,8 @@ package PDF::Boxer::Content::Image;
 use Moose;
 use namespace::autoclean;
 
-extends 'PDF::Boxer::Box';
+extends 'PDF::Boxer::Content::Box';
 
-#has 'img_width' => ( isa => 'Int', is => 'ro' );
-#has 'img_height' => ( isa => 'Int', is => 'ro' );
 has 'src' => ( isa => 'Str', is => 'ro' );
 has 'scale' => ( isa => 'Num', is => 'ro' );
 has 'format' => ( isa => 'Str', is => 'ro', lazy_build => 1 );
@@ -53,10 +51,15 @@ sub _build_image_height{
   return $height;
 }
 
+sub calculate_minimum_size{
+  my ($self) = @_;
+  $self->width($self->image_width);
+  $self->height($self->image_height);
+  return ($self->image_width, $self->image_height);
+}
+
 around 'render' => sub{
   my ($orig, $self) = @_;
-
-#  $self->dump_all;
 
   my $img = $self->image;
 
@@ -89,18 +92,9 @@ around 'render' => sub{
 
   $gfx->image($img, $x, $y, @args);
 
-#  $self->height($img_height);
-
   $self->$orig();
 
-
 };
-
-#around 'adjust_size' => sub{
-#  my ($orig, $self) = @_;
-#};
-
-sub _height_from_child{ shift->image_height }
 
 sub dump_attr{
   my ($self) = @_;
@@ -116,3 +110,12 @@ sub dump_attr{
 __PACKAGE__->meta->make_immutable;
 
 1;
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2011 Jason Galea <lecstor at cpan.org>. All rights reserved.
+
+This library is free software and may be distributed under the same terms as perl itself.
+
+=cut
+

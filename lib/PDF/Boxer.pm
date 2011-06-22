@@ -2,14 +2,16 @@ package PDF::Boxer;
 use Moose;
 use namespace::autoclean;
 
-use PDF::Boxer::Box;
+use PDF::Boxer::Content::Box;
 use PDF::Boxer::Content::Text;
 use PDF::Boxer::Content::Image;
+use PDF::Boxer::Content::Row;
+use PDF::Boxer::Content::Column;
 use Try::Tiny;
 use DDP;
 use Scalar::Util qw/weaken/;
 
-has 'debug'   => ( isa => 'Bool', is => 'ro', default => 0 );
+has 'debug'   => ( isa => 'HashRef', is => 'ro', default => sub{{}} );
 
 has 'doc' => ( isa => 'Object', is => 'ro' );
 
@@ -20,7 +22,6 @@ sub _build_content_margin_top{ shift->max_height }
 has 'max_width' => ( isa => 'Int', is => 'rw', default => 595 );
 has 'max_height'  => ( isa => 'Int', is => 'rw', default => 842 );
 
-#has 'parent_box' => ( isa => 'PDF::Boxer::Box', is => 'rw', clearer => 'clear_parent_box' ); 
 has 'sibling_box' => ( isa => 'PDF::Boxer::Box', is => 'rw', clearer => 'clear_sibling_box' ); 
 
 has 'box_stack' => ( isa => 'ArrayRef', is => 'ro', default => sub{[]} ); 
@@ -32,86 +33,21 @@ sub parent_box{
 
 sub add_to_pdf{
   my ($self, $spec) = @_;
-  
-  my $node = $self->inflate($spec);
-  $self->auto_adjust($node, 'children');
 
-  $self->render($node);
-  return $node;
- 
-}
-
-sub inflate{
-  my ($self, $spec, $parent, $sibling) = @_;
-
-  my $contents = delete $spec->{contents};
-
-#  my $parent = $self->parent_box;
-  if ($parent){
-    my $weak_parent = $parent;
-    weaken($weak_parent); 
-    $spec->{parent} = $weak_parent;
-    $spec->{max_width}   = $parent->width;
-    $spec->{max_height}  = $parent->height;
-    $spec->{margin_left} = $parent->content_left;
-    $spec->{margin_top}  = $parent->content_top;
-
-    if ($sibling){
-      if ($sibling->pressure_width){
-        $spec->{margin_top}  = $sibling->margin_bottom - 1;
-      } else {
-        $spec->{max_width}   = $parent->width - $sibling->margin_right - 1;
-        $spec->{margin_left} = $sibling->margin_right + 1;
-      }
-    }
-
-  } else {
-    $spec->{max_width}   = $self->max_width;
-    $spec->{max_height}  = $self->max_height;
-    $spec->{margin_left} = 0;
-    $spec->{margin_top}  = $self->max_height;
-  }
-
-  $spec->{type} ||= 'Box';
+  my $weak_me = $self;
+  weaken($weak_me);
+  $spec->{boxer} = $weak_me;
   $spec->{debug} = $self->debug;
-  $spec->{boxer} = $self;
 
-  $spec->{sibling} = $sibling if $sibling;
-
-  my $class = 'PDF::Boxer::Box';
-  if ($spec->{type} ne 'Box'){
-    $class = 'PDF::Boxer::Content::'.$spec->{type};
-  }
-
-#  warn "Create Node with Spec:\n".p($spec)."\n";
-#  warn "Create Node with Spec:\n".Data::Dumper->Dumper($spec)."\n";
-
+  my $class = 'PDF::Boxer::Content::'.$spec->{type};
   my $node = $class->new($spec);
-#  $parent->add_to_children($node) if $parent;
+  $node->calculate_minimum_size;
+  $node->size_and_position;
 
-  warn sprintf "New Node Created: %s\n", $node->name;
-  warn $node->dump_all;
-
-  my $child;
-
-  foreach(@$contents){
-    $child = $self->inflate($_, $node, $child);
-    $node->add_to_children($child);
-  }
-
-  return $node;
-
-}
-
-sub auto_adjust{
-  my ($self, $node, $type) = @_;
-  $node->auto_adjust($type);
-}
-
-sub render{
-  my ($self, $node) = @_;
   $node->render;
+  return $node;
 }
+
 
 
 =head1 NAME
@@ -176,20 +112,19 @@ Use a type of "box model" layout to create PDFs.
 
 =head1 BOX NOTES
 
-
-
-
-
-
 =cut
-
-
-
-
 
 __PACKAGE__->meta->make_immutable;
 
 1;
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2011 Jason Galea <lecstor at cpan.org>. All rights reserved.
+
+This library is free software and may be distributed under the same terms as perl itself.
+
+=cut
 
 
 
