@@ -6,7 +6,7 @@ use Scalar::Util qw/weaken/;
 has 'debug'   => ( isa => 'HashRef', is => 'ro', default => sub{{}} );
 
 has 'margin'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
-has 'border'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [1,0,0,0] } );
+has 'border'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
 has 'padding'  => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
 has 'children'  => ( isa => 'ArrayRef', is => 'rw', default => sub{ [] } );
 
@@ -19,6 +19,8 @@ has 'name' => ( isa => 'Str', is => 'ro' );
 has 'type' => ( isa => 'Str', is => 'ro', default => 'Box' );
 has 'background' => ( isa => 'Str', is => 'ro' );
 has 'border_color' => ( isa => 'Str', is => 'ro' );
+
+has 'font' => ( isa => 'Str', is => 'ro', default => 'Helvetica' );
 
 sub BUILDARGS{
   my ($class, $args) = @_;
@@ -58,6 +60,7 @@ sub BUILD{
   foreach my $child (@{$self->children}){
     $child->{boxer} = $self->boxer;
     $child->{debug} = $self->debug;
+    $child->{font} ||= $self->font;
     my $weak_me = $self;
     weaken($weak_me);
     $child->{parent} = $weak_me;
