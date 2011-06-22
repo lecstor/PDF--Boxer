@@ -6,7 +6,7 @@ use Scalar::Util qw/weaken/;
 has 'debug'   => ( isa => 'HashRef', is => 'ro', default => sub{{}} );
 
 has 'margin'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
-has 'border'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
+has 'border'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [1,0,0,0] } );
 has 'padding'  => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
 has 'children'  => ( isa => 'ArrayRef', is => 'rw', default => sub{ [] } );
 
@@ -68,12 +68,12 @@ sub BUILD{
 }
 
 sub propagate{
-  my ($self, $method) = @_;
+  my ($self, $method, $args) = @_;
   return unless $method;
   my @kids = @{$self->children};
   if (@kids){
     foreach my $kid (@kids){
-      $kid->$method();
+      $kid->$method($args);
     }
   }
   return @kids;

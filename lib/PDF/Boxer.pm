@@ -7,6 +7,7 @@ use PDF::Boxer::Content::Text;
 use PDF::Boxer::Content::Image;
 use PDF::Boxer::Content::Row;
 use PDF::Boxer::Content::Column;
+use PDF::Boxer::Content::Grid;
 use Try::Tiny;
 use DDP;
 use Scalar::Util qw/weaken/;

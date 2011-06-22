@@ -56,6 +56,10 @@ sub mangle_spec{
       $element->[0]{type} = 'Column';
       push(@{$spec->{children}}, shift @$element);
       $self->mangle_spec($spec->{children}->[-1], $element);
+    } elsif (lc($tag) eq 'grid'){
+      $element->[0]{type} = 'Grid';
+      push(@{$spec->{children}}, shift @$element);
+      $self->mangle_spec($spec->{children}->[-1], $element);
     } else {
       $element->[0]{type} = 'Box';
       push(@{$spec->{children}}, shift @$element);

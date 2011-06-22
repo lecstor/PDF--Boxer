@@ -1,32 +1,10 @@
-package PDF::Boxer::Content::Column;
+package PDF::Boxer::Content::Grid;
 use Moose;
 use namespace::autoclean;
+use DDP;
 
-extends 'PDF::Boxer::Content::Box';
+extends 'PDF::Boxer::Content::Column';
 
-sub calculate_minimum_size{
-  my ($self) = @_;
-
-  my @kids = $self->propagate('calculate_minimum_size');
-
-  # the main box should stay wide open.
-  return unless $self->parent;
-
-  my ($width, $height);
-  if (@kids){
-    ($width, $height) = $self->kids_min_size;
-  } else {
-    $width = $self->has_width ? $self->width : 0;
-    $height = $self->has_height ? $self->height : 0;
-  }
-
-  $self->adjust({
-     width => $width,
-     height => $height,
-  }, 'self');
-
-  return ($width, $height);
-}
 
 sub size_and_position{
   my ($self) = @_;
@@ -36,6 +14,21 @@ sub size_and_position{
   my $kids = $self->children;
 
   if (@$kids){
+    # calculate minumum widths of cells (kids)
+    my @row_highs;
+    foreach my $row (@$kids){
+      my @cells;
+      foreach my $cell (@{$row->children}){
+        push(@cells, $cell->margin_width);
+      }
+      $row_highs[scalar @cells-1] unless @row_highs;
+      my $idx = 0;
+      foreach my $val (@cells){
+        $row_highs[$idx] = $val if $val || 0 > $row_highs[$idx] || 0;
+        $idx++;
+      }
+    }
+
     my $space = $self->height - $height;
     my ($has_grow,$grow,$grow_all);
     my ($space_each);
@@ -69,22 +62,16 @@ sub size_and_position{
       $top -= $kheight;
     }
 
-    $self->propagate('size_and_position');
+    $self->propagate('size_and_position', { min_widths => \@row_highs });
   }
 
   return 1;
 }
 
-sub kids_min_size{
-  my ($self) = @_;
-  my @kids = @{$self->children};
-  my ($width, $height) = (0,0);
-  foreach(@kids){
-    $height+= $_->margin_height;
-    $width = $width ? (sort { $b <=> $a } ($_->margin_width,$width))[0] : $_->margin_width;
-  }
-  return ($width, $height);
-}
+
+
+
+
 
 __PACKAGE__->meta->make_immutable;
 

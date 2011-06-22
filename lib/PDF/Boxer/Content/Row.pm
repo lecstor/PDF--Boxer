@@ -4,10 +4,6 @@ use namespace::autoclean;
 
 extends 'PDF::Boxer::Content::Box';
 
-sub _build_pressure_width{ 1 }
-sub _build_pressure_height{ 1 }
-
-
 sub calculate_minimum_size{
   my ($self) = @_;
 
@@ -33,11 +29,21 @@ sub calculate_minimum_size{
 }
 
 sub size_and_position{
-  my ($self) = @_;
-
-  my ($width, $height) = $self->kids_min_size;
+  my ($self, $args) = @_;
 
   my $kids = $self->children;
+
+  if ($args->{min_widths} && @{$args->{min_widths}}){
+    if (@$kids){
+      my @widths = @{$args->{min_widths}};
+      foreach my $kid (@$kids){
+        my $width = shift @widths;
+        $kid->adjust({ margin_width => $width });
+      }
+    }
+  }
+
+  my ($width, $height) = $self->kids_min_size;
 
   if (@$kids){
     my $space = $self->width - $width;

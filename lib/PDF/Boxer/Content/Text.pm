@@ -4,7 +4,7 @@ use namespace::autoclean;
 
 extends 'PDF::Boxer::Content::Box';
 
-has 'size' => ( isa => 'Int', is => 'ro' );
+has 'size' => ( isa => 'Int', is => 'ro', default => 14 );
 has 'font' => ( isa => 'Str', is => 'ro', default => 'Helvetica' );
 has 'color' => ( isa => 'Str', is => 'ro' );
 has 'value' => ( isa => 'ArrayRef', is => 'ro' );

@@ -47,7 +47,42 @@ my $spec = <<'__EOP__';
       </box>
     </row>
   </column>
-  <box name="Content" grow="1" border="1"></box>
+  <grid name="Content" grow="1" border="1">
+    <row name="Content Row 1">
+      <text name="Content Row 1 Column1">
+        blah blah
+      </text>
+      <text name="Content Row 1 Column2">
+        blah blah blah
+      </text>
+      <text name="Content Row 1 Column3">
+        blah blah
+      </text>
+      <text name="Content Row 1 Column4">
+        blah blah blah blah
+      </text>
+      <text name="Content Row 1 Column5">
+        blah blah
+      </text>
+    </row>
+    <row name="Content Row 2">
+      <text name="Content Row 2 Column1">
+        blah blah
+      </text>
+      <text name="Content Row 2 Column2">
+        blah blah
+      </text>
+      <text name="Content Row 2 Column3">
+        blah blah blah blah blah
+      </text>
+      <text name="Content Row 2 Column4">
+        blah blah blah blah
+      </text>
+      <text name="Content Row 2 Column5">
+        blah blah
+      </text>
+    </row>
+  </grid>
   <row name="Footer" class="max_width" border="1" padding="5">
     <text name="FootText" size="14">
       Mr G Client

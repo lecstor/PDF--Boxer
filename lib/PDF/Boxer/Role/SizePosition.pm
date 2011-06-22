@@ -244,7 +244,6 @@ sub dump_size{
     (sprintf 'Border: %s x %s', $self->border_width, $self->border_height),
     (sprintf 'Padding: %s x %s', $self->padding_width, $self->padding_height),
     (sprintf 'Content: %s x %s', $self->width, $self->height),
-    (sprintf 'Pressure: %s x %s', $self->pressure_width, $self->pressure_height),
     (sprintf 'Content: %s x %s', $self->width, $self->height),
   );
   $_ .= "\n" foreach @lines;
