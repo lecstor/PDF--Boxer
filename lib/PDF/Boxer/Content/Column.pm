@@ -29,25 +29,18 @@ sub calculate_minimum_size{
      height => $height,
   }, 'self');
 
-#  warn $self->dump_size;
+  return ($width, $height);
 }
-
 
 sub size_and_position{
   my ($self) = @_;
 
   my ($width, $height) = $self->kids_min_size;
 
-warn "w: $width h: $height" if $self->name eq 'Header Right';
-
   my $kids = $self->children;
 
   if (@$kids){
     my $space = $self->height - $height;
-
-#die "NEGATIVE HEIGHT: $space" if $space < 0;
-
-
     my ($has_grow,$grow,$grow_all);
     my ($space_each);
     if ($space > 0){
@@ -82,10 +75,9 @@ warn "w: $width h: $height" if $self->name eq 'Header Right';
 
     $self->propagate('size_and_position');
   }
-  
-#  warn $self->dump_all;
-}
 
+  return 1;
+}
 
 sub kids_min_size{
   my ($self) = @_;

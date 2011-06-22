@@ -4,8 +4,6 @@ use namespace::autoclean;
 
 extends 'PDF::Boxer::Content::Box';
 
-#has 'img_width' => ( isa => 'Int', is => 'ro' );
-#has 'img_height' => ( isa => 'Int', is => 'ro' );
 has 'src' => ( isa => 'Str', is => 'ro' );
 has 'scale' => ( isa => 'Num', is => 'ro' );
 has 'format' => ( isa => 'Str', is => 'ro', lazy_build => 1 );
@@ -57,14 +55,11 @@ sub calculate_minimum_size{
   my ($self) = @_;
   $self->width($self->image_width);
   $self->height($self->image_height);
-
-  warn $self->dump_size;
+  return ($self->image_width, $self->image_height);
 }
 
 around 'render' => sub{
   my ($orig, $self) = @_;
-
-#  $self->dump_all;
 
   my $img = $self->image;
 
@@ -97,18 +92,9 @@ around 'render' => sub{
 
   $gfx->image($img, $x, $y, @args);
 
-#  $self->height($img_height);
-
   $self->$orig();
 
-
 };
-
-#around 'adjust_size' => sub{
-#  my ($orig, $self) = @_;
-#};
-
-sub _height_from_child{ shift->image_height }
 
 sub dump_attr{
   my ($self) = @_;

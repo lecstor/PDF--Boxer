@@ -56,7 +56,7 @@ sub calculate_minimum_size{
      height => $int_height,
   }, 'self-calculate_minimum_size');
 
-#  warn $self->dump_size;
+  return ($int_width, $int_height);
 }
 
 sub prepare_text{
@@ -71,8 +71,6 @@ sub prepare_text{
 
 around 'render' => sub{
   my ($orig, $self) = @_;
-
-#  $self->dump_all;
 
   my $text = $self->prepare_text;
   my $font = $self->get_font;
@@ -95,16 +93,6 @@ around 'render' => sub{
   $self->$orig();
 
 };
-
-#around 'adjust_size' => sub{
-#  my ($orig, $self) = @_;
-#  $self->height($self->lead * scalar @{$self->value});
-#};
-
-sub _height_from_child{
-  my ($self) = @_;
-  return $self->lead * scalar @{$self->value};
-}
 
 sub dump_attr{
   my ($self) = @_;
