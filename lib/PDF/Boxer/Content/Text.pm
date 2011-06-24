@@ -6,7 +6,7 @@ extends 'PDF::Boxer::Content::Box';
 
 has 'size' => ( isa => 'Int', is => 'ro', default => 14 );
 has 'font' => ( isa => 'Str', is => 'ro', default => 'Helvetica' );
-has 'color' => ( isa => 'Str', is => 'ro' );
+has 'color' => ( isa => 'Str', is => 'ro', default => 'black' );
 has 'value' => ( isa => 'ArrayRef', is => 'ro' );
 has 'align' => ( isa => 'Str', is => 'ro' );
 
@@ -87,7 +87,7 @@ around 'render' => sub{
   $text->translate($x,$y);
   foreach(@{$self->value}){
     $text->$align_method( $_ );
-    $text->nl;
+    $text->cr;
   }
 
   $self->$orig();

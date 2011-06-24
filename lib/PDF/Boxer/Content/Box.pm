@@ -21,6 +21,7 @@ has 'background' => ( isa => 'Str', is => 'ro' );
 has 'border_color' => ( isa => 'Str', is => 'ro' );
 
 has 'font' => ( isa => 'Str', is => 'ro', default => 'Helvetica' );
+has 'align' => ( isa => 'Str', is => 'ro', default => '' );
 
 sub BUILDARGS{
   my ($class, $args) = @_;
@@ -61,6 +62,7 @@ sub BUILD{
     $child->{boxer} = $self->boxer;
     $child->{debug} = $self->debug;
     $child->{font} ||= $self->font;
+    $child->{align} ||= $self->align;
     my $weak_me = $self;
     weaken($weak_me);
     $child->{parent} = $weak_me;

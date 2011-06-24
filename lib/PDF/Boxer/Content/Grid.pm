@@ -21,7 +21,7 @@ sub size_and_position{
       foreach my $cell (@{$row->children}){
         push(@cells, $cell->margin_width);
       }
-      $row_highs[scalar @cells-1] unless @row_highs;
+#      $row_highs[scalar @cells-1] unless @row_highs;
       my $idx = 0;
       foreach my $val (@cells){
         $row_highs[$idx] = $val if $val || 0 > $row_highs[$idx] || 0;
@@ -32,7 +32,7 @@ sub size_and_position{
     my $space = $self->height - $height;
     my ($has_grow,$grow,$grow_all);
     my ($space_each);
-    if ($space > 0){
+    if ($space < $height/10){
       foreach my $kid (@$kids){
         $has_grow++ if $kid->grow;
       }

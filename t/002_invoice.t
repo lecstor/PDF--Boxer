@@ -16,50 +16,110 @@ my $spec = <<'__EOP__';
 <column name="Main" max_width="595" max_height="842">
   <column name="Header">
     <row name="Head">
-      <box name="Header Left" padding="0" width="320">
+      <box name="Header Left">
         <image src="t/lecstor.gif" name="Lecstor Logo" align="center" valign="center" padding="10" scale="60" />
       </box>
-      <column name="Header Right" grow="1" padding="10" border="1" border_color="green">
-        <text name="Address1" padding="3" border="1" align="right" size="20" border_color="steelblue">
+      <column name="Header Right" grow="1" padding="20">
+        <text name="Address1" padding="3" align="right" size="20" border_color="steelblue">
           Lecstor Pty Ltd
         </text>
-        <text name="Address2" padding="3" align="right" border="1" border_color="grey" size="14" color="black">
+        <text name="Address2" padding="3" align="right" border_color="grey" size="14" color="black">
           ABN: 12 345 678 910
           123 Example St, Somewhere, Qld 4879
           (07) 4055 6926  jason@lecstor.com
         </text>
       </column>
     </row>
-    <row name="Details" border="1" height="80">
-      <box name="Recipient" width="300" padding="20" border="1">
-        <text name="Address" size="14" border="1">
+    <row name="Details" padding="15 0">
+      <box name="Recipient" padding="20">
+        <text name="Address" size="14">
           Mr G Client
           Shop 2 Some Centre, Retail Rd
           Somewhere, NSW 2000
         </text>
       </box>
-      <box name="Invoice" class="max_width" padding="20" border="1">
-        <text name="Issued" size="14" align="right" border="1">
+      <column name="Invoice" padding="20">
+        <text name="IID" size="16" align="right" font="Helvetica-Bold">
           Tax Invoice No. 123
+        </text>
+        <text name="Issued" size="14" align="right">
           Issued 01/01/2011
+        </text>
+        <text name="Issued" size="14" align="right" font="Helvetica-Bold">
           Due 14/01/2011
         </text>
-      </box>
+      </column>
     </row>
   </column>
-  <box name="Content" grow="1" border="1"></box>
-  <row name="Footer" class="max_width" border="1" padding="5">
-    <text name="FootText" size="14">
-      Mr G Client
-      Shop 2 Some Centre, Retail Rd
-      Somewhere, NSW 2000
-    </text>
-  </row>
+  <grid name="Content" padding="10">
+    <row font="Helvetica-Bold" padding="2">
+      <text padding="0 10">Name</text>
+      <text grow="1" padding="0 10">Description</text>
+      <text padding="0 10" align="center">
+        GST
+        Amount
+      </text>
+      <text padding="0 10" align="center">
+        Payable
+        Amount
+      </text>
+    </row>
+    <row padding="5">
+      <text padding="0 10">Web Services</text>
+      <text grow="1" padding="0 10">
+        a long description which
+        needs to be wrapped in
+        boxer markup source
+      </text>
+      <text padding="0 10" align="right">$9999.99</text>
+      <text padding="0 10" align="right">$99999.99</text>
+    </row>
+    <row padding="5">
+      <text padding="0 10">Web Services</text>
+      <text grow="1" padding="0 10">
+        a long description
+        which needs to be
+        wrapped
+      </text>
+      <text padding="0 10" align="right">$9999.99</text>
+      <text padding="0 10" align="right">$99999.99</text>
+    </row>
+  </grid>
+  <column name="Footer" padding="10" grow="1">
+    <row name="TotRow" grow="1">
+      <grid name="Totals">
+        <row padding="5">
+          <text grow="1" padding="0 10" align="right">Total Inc GST</text>
+          <text padding="0 10" align="right">$9999999999.99</text>
+        </row>
+        <row padding="5">
+          <text grow="1" padding="0 10" align="right">GST</text>
+          <text padding="0 10" align="right">$999999999.99</text>
+        </row>
+        <row padding="10 5">
+          <text grow="1" padding="0 10" align="right" font="Helvetica-Bold">Amount Due</text>
+          <text padding="0 10" align="right">$9999999999.99</text>
+        </row>
+      </grid>
+    </row>
+    <row name="DD">
+      <column name="DirectDeposit">
+        <text name="DD1" size="14" font="Helvetica-Bold">
+          Please pay by Direct Deposit:
+        </text>
+        <text name="DD2" size="14" padding="20">
+          Commonwealth Bank, Cairns
+          BSB: 01 2345
+          Account: 1234 5678
+        </text>
+      </column>
+    </row>
+  </column>
 </column>
 __EOP__
 
-#  <box name="Content" border="1" height="550"></box>
-#  <box name="Footer" border="1"></box>
+#  <box name="Content" height="550"></box>
+#  <box name="Footer"></box>
 
 my $parser = PDF::Boxer::SpecParser->new;
 $spec = $parser->parse($spec);

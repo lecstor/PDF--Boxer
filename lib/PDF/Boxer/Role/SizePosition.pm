@@ -8,12 +8,12 @@ requires qw!margin border padding children!;
 
 subtype 'HCoord',
     as 'Int',
-    where { $_ >= 0 && $_ <= 595 },
+#    where { $_ >= 0 && $_ <= 595 },
     message { "HCoord '$_' out of bounds" };
 
 subtype 'VCoord',
     as 'Int',
-    where { $_ >= 0 && $_ <= 842 },
+#    where { $_ >= 0 && $_ <= 842 },
     message { "VCoord '$_' out of bounds" };
 
 has 'max_width' => ( isa => 'HCoord', is => 'rw' );
