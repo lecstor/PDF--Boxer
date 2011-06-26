@@ -29,6 +29,67 @@ sub mangle_spec{
     my $tag = shift @$data;
     my $element = shift @$data;
     if ($tag eq '0'){
+#      push(@{$spec->{value}}, $element);
+    } elsif ($tag eq 'text'){
+warn Data::Dumper->Dumper($spec, $element);
+      $element->[0]{type} = 'Text';
+      my $kid = shift @$element;
+      $kid->{value} = [$self->clean_text($element->[1])];
+      push(@{$spec->{children}}, $kid);
+warn Data::Dumper->Dumper($spec);
+#exit;
+    } elsif ($tag eq 'textblock'){
+      $element->[0]{type} = 'TextBlock';
+      my $kid = shift @$element;
+      $kid->{value} = [$self->clean_text($element->[1])];
+      push(@{$spec->{children}}, $kid);
+    } elsif (lc($tag) eq 'image'){
+      $element->[0]{type} = 'Image';
+      push(@{$spec->{children}}, shift @$element);
+    } elsif (lc($tag) eq 'row'){
+      $element->[0]{type} = 'Row';
+      push(@{$spec->{children}}, shift @$element);
+      $self->mangle_spec($spec->{children}->[-1], $element);
+    } elsif (lc($tag) eq 'column'){
+      $element->[0]{type} = 'Column';
+      push(@{$spec->{children}}, shift @$element);
+      $self->mangle_spec($spec->{children}->[-1], $element);
+    } elsif (lc($tag) eq 'grid'){
+      $element->[0]{type} = 'Grid';
+      push(@{$spec->{children}}, shift @$element);
+      $self->mangle_spec($spec->{children}->[-1], $element);
+    } else {
+      $element->[0]{type} = 'Box';
+      push(@{$spec->{children}}, shift @$element);
+      $self->mangle_spec($spec->{children}->[-1], $element);
+    }
+  }
+}
+#warn Data::Dumper->Dumper($spec, $element);
+
+sub clean_text{
+  my ($self, $element) = @_;
+  return if $element =~ /^[\s\n\r]*$/;
+  if ($self->clean_whitespace){
+    $element =~ s/^[\s\n\r]+//;
+    $element =~ s/[\s\n\r]+$//;
+  }
+  my @el = split(/\n/,$element);
+  if ($self->clean_whitespace){
+    foreach(@el){
+      s/^\s+//;
+      s/\s+$//;
+    }
+  }
+  return @el;
+}
+
+sub mangle_spec1{
+  my ($self, $spec, $data) = @_;
+  while(@$data){
+    my $tag = shift @$data;
+    my $element = shift @$data;
+    if ($tag eq '0'){
       next if $element =~ /^[\s\n\r]*$/;
       
       if ($self->clean_whitespace){

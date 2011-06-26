@@ -1,49 +1,16 @@
 package PDF::Boxer::Content::Text;
 use Moose;
 use namespace::autoclean;
+use DDP;
 
 extends 'PDF::Boxer::Content::Box';
+with 'PDF::Boxer::Role::Text';
 
-has 'size' => ( isa => 'Int', is => 'ro', default => 14 );
-has 'font' => ( isa => 'Str', is => 'ro', default => 'Helvetica' );
-has 'color' => ( isa => 'Str', is => 'ro', default => 'black' );
-has 'value' => ( isa => 'ArrayRef', is => 'ro' );
-has 'align' => ( isa => 'Str', is => 'ro' );
-
-has 'lead' => ( isa => 'Int', is => 'ro', lazy_build => 1 );
-sub _build_lead{
+sub set_minimum_size{
   my ($self) = @_;
-  return int($self->size + $self->size*$self->lead_spacing);
-}
 
-has 'lead_spacing' => ( isa => 'Num', is => 'ro', lazy_build => 1 );
-sub _build_lead_spacing{
-  return 20/100;
-}
-
-sub get_font{
-  my ($self) = @_;
-  return $self->boxer->doc->font( $self->font );
-}
-
-sub baseline_top{
-  my ($self, $font, $size) = @_;
-  my $asc = $font->ascender();
-  my $desc = $font->descender();
-  my $adjust_perc = $asc / (($desc < 0 ? abs($desc) : $desc) + $asc);
-  my $adjust = $self->size*$adjust_perc;
-  return $self->content_top - $adjust;
-}
-
-sub calculate_minimum_size{
-  my ($self) = @_;
-  my $text = $self->prepare_text;
-  my ($width,$height) = (0,0);
-  foreach(@{$self->value}){
-    my $twidth = $text->advancewidth($_);
-    $width = $width ? (sort($twidth,$width))[1] : $twidth;
-    $height += $self->lead;
-  }
+  my $space = 10;
+  my ($width, $height) = $self->find_smallest_block($space);
 
   my $int_width = int($width);
   $int_width++ if $width > $int_width;
@@ -54,25 +21,62 @@ sub calculate_minimum_size{
   $self->adjust({
      width => $int_width,
      height => $int_height,
-  }, 'self-calculate_minimum_size');
+  }, 'self-set_minimum_size');
 
   return ($int_width, $int_height);
 }
 
-sub prepare_text{
+sub size_and_position{
   my ($self) = @_;
-  my $text = $self->boxer->doc->text;
-  my $font = $self->get_font;
-  $text->font($font, $self->size);
-  $text->fillcolor($self->color);
-  $text->lead($self->lead);
-  return $text;
+  my $wrapped_lines = $self->wrapped_lines([@{$self->value}], $self->width);
+  my $longest_line_length = int($self->longest_line($wrapped_lines))+1;
+  $self->adjust({
+     width => $longest_line_length,
+     height => int($self->lead * scalar @$wrapped_lines)+1,
+  }, 'self-set_minimum_size');
+
 }
+
+=pod
+
+sub tighten{
+  my ($self) = @_;
+  my $wrapped_lines = $self->wrapped_lines([@{$self->value}], $self->width);
+  my $height = int($self->lead * scalar @$wrapped_lines)+1;
+
+  if ($self->height > $height){
+    $self->adjust({ height => $height });
+  }
+
+}
+
+around 'adjust' => sub{
+  my ($orig, $self, $spec, $sender) = @_;
+  $self->$orig($spec, $sender);
+
+  my $wrapped_lines = $self->wrapped_lines([@{$self->value}], $self->width);
+  my $height = int($self->lead * scalar @$wrapped_lines)+1;
+
+  if ($self->height > $height){
+    $self->adjust({ height => $height });
+  }
+
+};
+
+=cut
 
 around 'render' => sub{
   my ($orig, $self) = @_;
 
   my $text = $self->prepare_text;
+
+  my $wrapped_lines = $self->wrapped_lines([@{$self->value}], $self->width);
+
+warn p($self->value);
+warn p($wrapped_lines);
+
+  my $longest_line_length = $self->longest_line($wrapped_lines);
+
   my $font = $self->get_font;
 
   my $x = $self->content_left;
@@ -85,7 +89,7 @@ around 'render' => sub{
   }
 
   $text->translate($x,$y);
-  foreach(@{$self->value}){
+  foreach(@$wrapped_lines){
     $text->$align_method( $_ );
     $text->cr;
   }
@@ -94,16 +98,61 @@ around 'render' => sub{
 
 };
 
-sub dump_attr{
-  my ($self) = @_;
-  my @lines = (
-    '== Text Attr ==',
-    (sprintf 'Text: %s', "\n\t".join("\n\t", @{$self->value})),
-    (sprintf 'Size: %s', $self->size || 'none'),
-    (sprintf 'Color: %s', $self->color || 'none'),
-  );
-  $_ .= "\n" foreach @lines;
-  return join('', @lines);
+sub find_smallest_block{
+  my ($self, $space) = @_;
+  return if $space > 1000;
+  my $wrapped_lines = $self->wrapped_lines([@{$self->value}], $space);
+  my $width = $self->longest_line($wrapped_lines);
+  my $height = $self->lead * scalar @$wrapped_lines;
+  return ($width, $height) if 1 - $width/($height || 1) < .2;
+  return $self->find_smallest_block($space + 10);
+}
+
+sub longest_line{
+  my ($self, $lines) = @_;
+  my $text = $self->prepare_text;
+  my $longest_line_length = 0;
+  foreach my $line (@$lines){
+    my $len = $text->advancewidth($line);
+    $longest_line_length = $len if $len > $longest_line_length;
+  }
+  return $longest_line_length;
+}
+
+sub wrapped_lines{
+  my ($self, $lines, $space) = @_;
+  my @wrapped_lines;
+#  $space ||= $self->width;
+  my $text = $self->prepare_text;
+  foreach my $line (@$lines){
+    my $len = $text->advancewidth($line);
+    if ($len > $space){
+      my $wrapped_lines = $self->split_line($line, $space);
+      push(@wrapped_lines, @$wrapped_lines);
+    } else {
+      push(@wrapped_lines, $line);
+    }
+  }
+  return (\@wrapped_lines);
+}
+
+sub split_line{
+  my ($self, $line, $width) = @_;
+  my @words = ref $line ? @$line : split(/\s+/, $line);
+  my @wrapped_lines;  
+  my $text = $self->prepare_text;
+  while (@words){
+    my $new_line = shift @words;
+    while (@words && $text->advancewidth($new_line.' '.$words[0]) < $width){
+      last unless @words;
+      $new_line .= ' ' . shift @words;
+    }
+    push(@wrapped_lines, $new_line);  
+  }
+#  if (@words){
+#    push(@wrapped_lines, @{$self->split_line(\@words)});
+#  }
+  return \@wrapped_lines;
 }
 
 __PACKAGE__->meta->make_immutable;

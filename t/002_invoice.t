@@ -38,7 +38,7 @@ my $spec = <<'__EOP__';
           Somewhere, NSW 2000
         </text>
       </box>
-      <column name="Invoice" padding="20">
+      <column name="Invoice" padding="20" border_color="red">
         <text name="IID" size="16" align="right" font="Helvetica-Bold">
           Tax Invoice No. 123
         </text>
@@ -64,12 +64,10 @@ my $spec = <<'__EOP__';
         Amount
       </text>
     </row>
-    <row padding="5">
+    <row name="ItemOne" padding="5" border_color="red">
       <text padding="0 10">Web Services</text>
       <text grow="1" padding="0 10">
-        a long description which
-        needs to be wrapped in
-        boxer markup source
+        a long description which needs to be wrapped in boxer markup source
       </text>
       <text padding="0 10" align="right">$9999.99</text>
       <text padding="0 10" align="right">$99999.99</text>
@@ -124,10 +122,15 @@ __EOP__
 my $parser = PDF::Boxer::SpecParser->new;
 $spec = $parser->parse($spec);
 
+#warn p($parser->xml_parser->parse($spec));
+warn p($spec);
+#exit;
+
 #warn Data::Dumper->Dumper($spec);
 
 my $boxer = PDF::Boxer->new({
   doc => PDF::Boxer::Doc->new({ file => 'test_invoice.pdf' }),
+  debug => { adjust => { dump => { ItemOne => 1 } }},
 });
 
 $boxer->add_to_pdf($spec);

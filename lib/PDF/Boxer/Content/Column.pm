@@ -4,10 +4,10 @@ use namespace::autoclean;
 
 extends 'PDF::Boxer::Content::Box';
 
-sub calculate_minimum_size{
+sub set_minimum_size{
   my ($self) = @_;
 
-  my @kids = $self->propagate('calculate_minimum_size');
+  my @kids = $self->propagate('set_minimum_size');
 
   # the main box should stay wide open.
   return unless $self->parent;
@@ -73,6 +73,46 @@ sub size_and_position{
   }
 
   return 1;
+}
+
+sub position{
+  my ($self) = @_;
+  my $kids = $self->children;
+  my $top = $self->content_top;
+  my $left = $self->content_left;
+
+  foreach my $kid (@$kids){
+    my $kheight = $kid->margin_height;
+    $kid->adjust({
+      margin_left => $left,
+      margin_top => $top,
+    },'parent');
+    $top -= $kheight;
+  }
+}
+
+sub tighten{
+  my ($self) = @_;
+  $self->propagate('tighten');
+  $self->position;
+
+  my $kid = $self->children->[-1];
+  $self->adjust({
+    content_bottom => $kid->margin_bottom,
+  },'self');
+
+}
+
+
+sub float_kids{
+  my ($self) = @_;
+  my $kids = $self->children;
+
+  if (@$kids){
+ 
+
+  }
+
 }
 
 sub kids_min_size{

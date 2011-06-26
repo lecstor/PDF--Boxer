@@ -4,10 +4,10 @@ use namespace::autoclean;
 
 extends 'PDF::Boxer::Content::Box';
 
-sub calculate_minimum_size{
+sub set_minimum_size{
   my ($self) = @_;
 
-  my @kids = $self->propagate('calculate_minimum_size');
+  my @kids = $self->propagate('set_minimum_size');
 
   # the main box should stay wide open.
   return unless $self->parent;
@@ -31,17 +31,9 @@ sub calculate_minimum_size{
 sub size_and_position{
   my ($self, $args) = @_;
 
-  my $kids = $self->children;
+  $self->set_kids_minimum_width($args);
 
-  if ($args->{min_widths} && @{$args->{min_widths}}){
-    if (@$kids){
-      my @widths = @{$args->{min_widths}};
-      foreach my $kid (@$kids){
-        my $width = shift @widths;
-        $kid->adjust({ margin_width => $width });
-      }
-    }
-  }
+  my $kids = $self->children;
 
   my ($width, $height) = $self->kids_min_size;
 
@@ -84,6 +76,50 @@ sub size_and_position{
   return 1; 
 }
 
+sub tighten{
+  my ($self) = @_;
+  $self->propagate('tighten');
+
+  my $kids = $self->children;
+  my $margin_bottom = 0;
+  if (@$kids){
+    foreach(@$kids){
+      $margin_bottom ||= $_->margin_bottom;
+      $margin_bottom = $_->margin_bottom if $_->margin_bottom < $margin_bottom;
+    }
+
+
+warn ($self->name || 'noname')." ########### kids: $margin_bottom me: ".$self->content_bottom;
+
+    $self->cross_hairs($self->margin_left, $margin_bottom,'blue');
+    $self->cross_hairs($self->margin_left, $self->content_bottom,'green');
+
+    my $change = $margin_bottom - $self->content_bottom;
+    my $height = $self->height - $change;
+
+    $self->adjust({
+      height => $height,
+    },'self');
+
+    warn "Content Bottom: ". $self->content_bottom;
+
+  }
+
+}
+
+sub set_kids_minimum_width{
+  my ($self, $args) = @_;
+  my $kids = $self->children;
+  if ($args->{min_widths} && @{$args->{min_widths}}){
+    if (@$kids){
+      my @widths = @{$args->{min_widths}};
+      foreach my $kid (@$kids){
+        my $width = shift @widths;
+        $kid->adjust({ margin_width => $width });
+      }
+    }
+  }
+}
 
 sub kids_min_size{
   my ($self) = @_;

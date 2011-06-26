@@ -51,7 +51,7 @@ sub _build_image_height{
   return $height;
 }
 
-sub calculate_minimum_size{
+sub set_minimum_size{
   my ($self) = @_;
   $self->width($self->image_width);
   $self->height($self->image_height);

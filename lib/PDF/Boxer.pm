@@ -2,8 +2,10 @@ package PDF::Boxer;
 use Moose;
 use namespace::autoclean;
 
+use PDF::Boxer::Doc;
 use PDF::Boxer::Content::Box;
 use PDF::Boxer::Content::Text;
+use PDF::Boxer::Content::TextBlock;
 use PDF::Boxer::Content::Image;
 use PDF::Boxer::Content::Row;
 use PDF::Boxer::Content::Column;
@@ -42,8 +44,9 @@ sub add_to_pdf{
 
   my $class = 'PDF::Boxer::Content::'.$spec->{type};
   my $node = $class->new($spec);
-  $node->calculate_minimum_size;
+  $node->set_minimum_size;
   $node->size_and_position;
+  $node->tighten;
 
   $node->render;
   return $node;
@@ -110,6 +113,12 @@ PDF::Boxer
 =head1 DESCRIPTION
 
 Use a type of "box model" layout to create PDFs.
+
+=head1 METHODS
+
+=item add_to_pdf
+
+  $boxer->add_to_pdf($spec);
 
 =head1 BOX NOTES
 

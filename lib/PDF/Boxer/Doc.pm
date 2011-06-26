@@ -55,7 +55,7 @@ sub font{
   return $font unless ref($font) eq 'HASH';
   my $font_type = delete $font->{type};
   my $font_id = delete $font->{id};
-  return $self->fonts->{$name} = $self->pdf->$font_type($font_id, 1); #%$font);
+  return $self->fonts->{$name} = $self->pdf->$font_type($font_id, %$font);
 }
 
 __PACKAGE__->meta->make_immutable;

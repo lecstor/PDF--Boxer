@@ -56,16 +56,16 @@ has 'attribute_rels' => ( isa => 'HashRef', is => 'ro', lazy_build => 1 );
 
 sub _build_attribute_rels{
   return {
-    max_width     => [qw! margin_right content_right margin_width border_width padding_width !],
-    max_height    => [qw! margin_bottom content_bottom margin_height border_height padding_height!],
-    width         => [qw! margin_right content_right margin_width border_width padding_width !],
-    height        => [qw! margin_bottom content_bottom margin_height border_height padding_height!],
-    margin_left   => [qw! margin_right border_left padding_left content_left !],
-    margin_top    => [qw! margin_bottom border_top padding_top content_top content_bottom !],
-    margin_right  => [qw! margin_left border_left padding_left content_left content_right !],
-    margin_bottom => [qw! margin_top border_top padding_top content_top content_bottom !],
-    margin_width  => [qw! width margin_right content_right border_width padding_width !],
-    margin_height => [qw! height margin_bottom content_bottom border_height padding_height !],
+    max_width      => [qw! margin_right content_right margin_width border_width padding_width !],
+    max_height     => [qw! margin_bottom content_bottom margin_height border_height padding_height!],
+    width          => [qw! margin_right content_right margin_width border_width padding_width !],
+    height         => [qw! margin_bottom content_bottom margin_height border_height padding_height!],
+    margin_left    => [qw! margin_right border_left padding_left content_left !],
+    margin_top     => [qw! margin_bottom border_top padding_top content_top content_bottom !],
+    margin_right   => [qw! margin_left border_left padding_left content_left content_right !],
+    margin_bottom  => [qw! margin_top border_top padding_top content_top content_bottom !],
+    margin_width   => [qw! width margin_right content_right border_width padding_width !],
+    margin_height  => [qw! height margin_bottom content_bottom border_height padding_height !],
   }
 }
 
@@ -77,11 +77,13 @@ Decides what to do about it..
 =cut
 
 
+# debug => { adjust => { dump => { ItemOne => 1 } }}
+
 sub adjust{
   my ($self, $spec, $sender) = @_;
 
-  if ($self->debug->{adjust}{dump}{$self->name}){
-    cluck $self->name." adjust from $sender ".Data::Dumper->Dumper($spec);
+  if (%{$self->debug} && $self->name && $self->debug->{adjust}{dump}{$self->name}){
+    cluck $self->name." adjust from ".($sender || 'na')."\n".Data::Dumper->Dumper($spec);
   }
 
   foreach my $attr (keys %$spec){

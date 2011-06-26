@@ -6,7 +6,7 @@ use Scalar::Util qw/weaken/;
 has 'debug'   => ( isa => 'HashRef', is => 'ro', default => sub{{}} );
 
 has 'margin'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
-has 'border'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
+has 'border'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [1,0,0,0] } );
 has 'padding'  => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
 has 'children'  => ( isa => 'ArrayRef', is => 'rw', default => sub{ [] } );
 
@@ -84,10 +84,10 @@ sub propagate{
   return @kids;
 }
 
-sub calculate_minimum_size{
+sub set_minimum_size{
   my ($self) = @_;
 
-  my @kids = $self->propagate('calculate_minimum_size');
+  my @kids = $self->propagate('set_minimum_size');
 
   # the main box should stay wide open.
   return unless $self->parent;
@@ -114,7 +114,7 @@ sub calculate_minimum_size{
 sub size_and_position{
   my ($self) = @_;
 
-  my ($width, $height) = $self->kids_min_size;
+#  my ($width, $height) = $self->kids_min_size;
 
   my $kid = $self->children->[0];
 
@@ -127,6 +127,23 @@ sub size_and_position{
     },'parent');
 
     $self->propagate('size_and_position');
+  }
+
+  return 1;
+}
+
+sub tighten{
+  my ($self) = @_;
+
+  $self->propagate('tighten');
+
+  my $kid = $self->children->[0];
+
+  if ($kid){
+    $self->adjust({
+      content_bottom => $kid->margin_top,
+    },'self');
+
   }
 
   return 1;
@@ -183,6 +200,18 @@ sub add_marker{
   $gfx->stroke;
   $gfx->move($self->margin_left, $self->margin_top);
   $gfx->vline($self->margin_top-3);
+  $gfx->stroke;
+}
+
+sub cross_hairs{
+  my ($self, $x, $y, $color) = @_;
+  $color ||= 'blue';
+  my $gfx = $self->boxer->doc->gfx;
+  $gfx->strokecolor($color);
+  $gfx->move($x,0);
+  $gfx->vline($self->margin_height);
+  $gfx->move(0,$y);
+  $gfx->hline($self->margin_width);
   $gfx->stroke;
 }
 
