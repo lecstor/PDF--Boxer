@@ -51,6 +51,63 @@ sub _build_image_height{
   return $height;
 }
 
+
+
+
+sub get_default_size{
+  my ($self) = @_;
+  return ($self->image_width, $self->image_height);
+}
+
+around 'render' => sub{
+  my ($orig, $self) = @_;
+
+  my $img = $self->image;
+
+  my $gfx = $self->boxer->doc->gfx;
+
+  my $x = $self->content_left;
+  my $y = $self->content_top-$self->height;
+
+  my @args = $self->scale ? ($self->scale/100) : ($self->image->width, $self->image->height);
+
+  if (my $al = $self->valign){
+    if ($al eq 'top'){
+      $y = $self->content_top - $self->image_height;
+    } elsif ($al eq 'center'){
+      my $bc = $self->content_top - ($self->content_height / 2);
+      my $ic = $self->image_height / 2;
+      $y = $bc - $ic;
+    }
+  }
+
+  if (my $al = $self->align){
+    if ($al eq 'right'){
+      $x = $self->content_right - $self->image_width;
+    } elsif ($al eq 'center'){
+      my $bc = $self->content_left + ($self->content_width / 2);
+      my $ic = $self->image_width / 2;
+      $x = $bc - $ic;      
+    }
+  }
+
+  $gfx->image($img, $x, $y, @args);
+
+  $self->$orig();
+
+};
+
+
+__PACKAGE__->meta->make_immutable;
+
+1;
+
+__END__
+
+
+
+
+
 sub set_minimum_size{
   my ($self) = @_;
   $self->width($self->image_width);

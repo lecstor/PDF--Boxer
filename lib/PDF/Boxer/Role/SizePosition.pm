@@ -19,11 +19,11 @@ subtype 'VCoord',
 has 'max_width' => ( isa => 'HCoord', is => 'rw' );
 has 'max_height' => ( isa => 'VCoord', is => 'rw' );
 
-has 'width' => ( isa => 'HCoord', is => 'rw', lazy_build => 1, ); #trigger => \&_width_set );
-has 'height' => ( isa => 'VCoord', is => 'rw', lazy_build => 1, ); #trigger => \&_height_set );
+has 'width' => ( isa => 'Maybe[HCoord]', is => 'rw', lazy_build => 1, ); #trigger => \&_width_set );
+has 'height' => ( isa => 'Maybe[VCoord]', is => 'rw', lazy_build => 1, ); #trigger => \&_height_set );
 
-has 'margin_left' => ( isa => 'HCoord', is => 'rw', lazy_build => 1 ); # required => 1, ); #trigger => \&_margin_left_set );
-has 'margin_top'  => ( isa => 'VCoord', is => 'rw', lazy_build => 1 ); # required => 1, ); #trigger => \&_margin_top_set );
+has 'margin_left' => ( isa => 'Maybe[HCoord]', is => 'rw', lazy_build => 1 ); # required => 1, ); #trigger => \&_margin_left_set );
+has 'margin_top'  => ( isa => 'Maybe[VCoord]', is => 'rw', lazy_build => 1 ); # required => 1, ); #trigger => \&_margin_top_set );
 
 has 'margin_right' => ( isa => 'HCoord', is => 'rw', lazy_build => 1 );
 has 'margin_bottom'  => ( isa => 'VCoord', is => 'rw', lazy_build => 1 );
@@ -82,8 +82,9 @@ Decides what to do about it..
 sub adjust{
   my ($self, $spec, $sender) = @_;
 
-  if (%{$self->debug} && $self->name && $self->debug->{adjust}{dump}{$self->name}){
-    cluck $self->name." adjust from ".($sender || 'na')."\n".Data::Dumper->Dumper($spec);
+  if (%{$self->debug} && $self->name){
+#    warn $self->name." adjust from ".($sender || 'na')."\n".Data::Dumper->Dumper($spec);
+#    carp $self->name." adjust from ".($sender || 'na')."\n".Data::Dumper->Dumper($spec);
   }
 
   foreach my $attr (keys %$spec){
@@ -97,6 +98,74 @@ sub adjust{
 
 }
 
+sub move{
+  my ($self, $x, $y) = @_;
+  return if 
+    ($self->margin_left && $self->margin_left == $x)
+    && ($self->margin_top && $self->margin_top == $y);
+  warn $self->name." move $x, $y from ".join('-',(caller)[0,2])."\n" if $self->name;
+  $self->adjust({ margin_left => $x, margin_top => $y });
+}
+
+sub set_width{
+  my ($self, $arg) = @_;
+  return if $self->width && $self->width == $arg;
+  warn $self->name." set width $arg from ".join('-',(caller)[0,2])."\n" if $self->name;
+  $self->adjust({ width => $arg });
+}
+
+sub set_margin_width{
+  my ($self, $arg) = @_;
+  return if $self->margin_width && $self->margin_width == $arg;
+  warn $self->name." set margin_width $arg from ".join('-',(caller)[0,2])."\n" if $self->name;
+  $self->adjust({ margin_width => $arg });
+}
+
+sub set_height{
+  my ($self, $arg) = @_;
+  return if $self->height && $self->height == $arg;
+  warn $self->name." set height $arg from ".join('-',(caller)[0,2])."\n" if $self->name;
+  $self->adjust({ height => $arg });
+}
+
+sub set_margin_height{
+  my ($self, $arg) = @_;
+  return if $self->margin_height && $self->margin_height == $arg;
+  warn $self->name." set margin_height $arg from ".join('-',(caller)[0,2])."\n" if $self->name;
+  $self->adjust({ margin_height => $arg });
+}
+
+sub set_size{
+  my ($self, $x, $y) = @_;
+  return if 
+    ($self->width && $self->width == $x)
+    && ($self->height && $self->height == $y);
+  warn $self->name." size $x, $y from ".join('-',(caller)[0,2])."\n" if $self->name;
+  $self->adjust({ width => $x, height => $y });
+}
+
+sub set_margin_size{
+  my ($self, $x, $y) = @_;
+  return if $self->margin_width == $x && $self->margin_height == $y;
+  warn $self->name." size $x, $y from ".join('-',(caller)[0,2])."\n" if $self->name;
+  $self->adjust({ margin_width => $x, margin_height => $y });
+}
+
+sub child_height_set{};
+sub child_width_set{};
+
+sub position_set{
+  my ($self) = @_;
+  return 1 if ($self->has_margin_left || $self->has_margin_right)
+           && ($self->has_margin_top || $self->has_margin_bottom);
+}
+
+sub size_set{
+  my ($self) = @_;
+  return 1 if ($self->has_margin_width || $self->has_width)
+           && ($self->has_margin_height || $self->has_height);
+}
+
 sub _build_margin_left{
   my ($self) = @_;
   if ($self->has_content_left){
@@ -107,6 +176,7 @@ sub _build_margin_left{
     return $self->content_right - $self->content_width;
   }
 
+  return undef;
   confess "unable to build margin_left for ".$self->name;
 }
 
@@ -125,6 +195,7 @@ sub _build_margin_top{
     return $self->content_bottom - $self->content_height;
   }
 
+  return undef;
   confess "unable to build margin_top for ".$self->name;
 }
 
@@ -182,7 +253,8 @@ sub _build_width{
   } elsif ($self->has_content_left && $self->has_content_right){
     return $self->content_right - $self->content_left;
   }
-  die "unable to build width";
+  return undef;
+  confess "unable to build width";
 }
 
 sub _build_height{
@@ -200,7 +272,8 @@ sub _build_height{
   } elsif ($self->has_content_left && $self->has_content_right){
     return $self->content_right - $self->content_left;
   }
-  die "unable to build height";
+  return undef;
+  confess "unable to build height";
 }
 
 sub content_width{ shift->width }

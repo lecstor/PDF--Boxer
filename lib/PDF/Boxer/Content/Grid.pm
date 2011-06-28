@@ -5,8 +5,72 @@ use DDP;
 
 extends 'PDF::Boxer::Content::Column';
 
+sub update_children{
+  my ($self) = @_;
+  $self->update_kids_size     if $self->size_set;
+  $self->update_kids_position if $self->position_set;
+  foreach my $kid (@{$self->children}){
+    $kid->update;
+  }
+  return 1;
+}
 
-sub size_and_position{
+sub update_kids_position{
+  my ($self) = @_;
+  my $kids = $self->children;
+  if (@$kids){
+    my $top = $self->content_top;
+    my $left = $self->content_left;
+    foreach my $kid (@$kids){
+warn sprintf "## update_kids_position: %s mh:%s  %s, %s\n", $kid->name, $kid->margin_height, $left, $top;
+      $kid->move($left, $top);
+#      $kid->update;
+      $top -= $kid->margin_height;
+    }
+  }
+  return 1;
+}
+
+sub update_kids_size{
+  my ($self) = @_;
+
+  my ($width, $height) = $self->get_default_size;
+
+  my $kids = $self->children;
+
+  if (@$kids){
+
+    my $space = $self->height - $height;
+    my ($has_grow,$grow,$grow_all);
+    my ($space_each);
+    if ($space < $height/10){
+      foreach my $kid (@$kids){
+        $has_grow++ if $kid->grow;
+      }
+      if (!$has_grow){
+        $grow_all = 1;
+        $has_grow = @$kids;
+      }
+      $space_each = int($space/$has_grow);
+    }
+
+    my $kwidth = $self->content_width;
+
+    foreach my $kid (@$kids){
+      my $kheight = $kid->margin_height;
+      if ($grow_all || $kid->grow){
+        $kheight += $space_each;
+      }
+      $kid->set_margin_size($kwidth, $kheight);
+#      $kid->update;
+    }
+
+  }
+
+  return 1;
+}
+
+sub update_grand_kids{
   my ($self) = @_;
 
   my ($width, $height) = $self->kids_min_size;
@@ -67,9 +131,6 @@ sub size_and_position{
 
   return 1;
 }
-
-
-
 
 
 

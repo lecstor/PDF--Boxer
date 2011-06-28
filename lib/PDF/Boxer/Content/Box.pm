@@ -84,32 +84,136 @@ sub propagate{
   return @kids;
 }
 
-sub set_minimum_size{
+# initialize objects with default sizes
+#  - text gets width of widest line and height of all lines (wrapped at page width)
+#  - images get their scaled size
+#  - rows get the height of their tallest child and the width of all of them
+#  - columns get the width of their widest child and the height of all of them
+#  - grids (same as columns)
+#  - box gets the width of all it's kids (wrapped at page width) and the height of the line of kids
+
+# if text or box are too wide they need to be resized and they're contents re-wrapped.
+# this may result in their height increasing which needs to be communicated to their parent.
+# the parent can then adjust itself accordingly.
+
+
+sub initialize{
   my ($self) = @_;
 
-  my @kids = $self->propagate('set_minimum_size');
+  my @kids = $self->propagate('initialize');
+
+  $self->update unless $self->parent;
 
   # the main box should stay wide open.
   return unless $self->parent;
 
+  my ($width, $height) = $self->get_default_size;
+
+  $self->set_width($width);
+  $self->set_height($height);
+
+  return 1;
+}
+
+# we get our size from the children
+sub get_default_size{
+  my ($self) = @_;
   my ($width, $height) = (0,0);
-  if (@kids){
-    foreach(@kids){
-      $height+= $_->margin_height;
+  my $kids = $self->children;
+  if (@$kids){
+    my ($widest, $highest, $x, $y) = (0, 0, 0); 
+    foreach(@$kids){
+      $highest = $_->margin_height if $_->margin_height > $highest;
+      if ($width + $_->margin_width > $self->boxer->max_width){
+        $height += $highest;
+        $highest = 0;
+        $widest = $width if $width > $widest;
+      } else {
+        $width += $_->margin_width;
+      }
       $width = $width ? (sort($_->margin_width,$width))[1] : $_->margin_width;
     }
-  } else {
-    $width = $self->has_width ? $self->width : 0;
-    $height = $self->has_height ? $self->height : 0;
-  }
-
-  $self->adjust({
-     width => $width,
-     height => $height,
-  }, 'self');
-
+    $height += $highest;
+  }# else {
+  #  $width = $self->has_width ? $self->width : 0;
+  #  $height = $self->has_height ? $self->height : 0;
+  #}
   return ($width, $height);
 }
+
+sub update{
+  my ($self) = @_;
+  $self->update_children;
+  return 1;
+}
+
+sub child_adjusted_height{}
+
+sub update_children{
+  my ($self) = @_;
+  if ($self->position_set){
+    my $kids = $self->children;
+    if (@$kids){
+      my ($highest, $x, $y) = (0, $self->content_left, $self->content_top); 
+      foreach my $kid (@$kids){
+        $highest = $kid->margin_height if $kid->margin_height > $highest;
+        if ($x + $kid->margin_width > $self->width){
+          $kid->move($x,$y);
+          $y -= $highest;
+          $highest = 0;
+          $x = $self->content_left;
+        } else {
+          $kid->move($x,$y);
+          $x += $kid->margin_width;
+        }
+      }
+    }
+  }
+}
+
+sub render{
+  my ($self) = @_;
+
+  my $gfx = $self->boxer->doc->gfx;
+
+  if ($self->background){
+    $gfx->fillcolor($self->background);
+    $gfx->rect($self->border_left, $self->border_top, $self->border_width, -$self->border_height);
+    $gfx->fill;
+  }
+
+  # === Need to change to respect all border sides sizes ===
+  # increasing linewidth thickens the border "around" the lines of the rectangle.
+  # we want to thinken "inside" the rectangle..
+  if (my $width = $self->border->[0]){
+    $gfx->linewidth(1);
+    $gfx->strokecolor($self->border_color || 'black');
+    my ($bl,$bt,$bw,$bh) = ($self->border_left, $self->border_top, $self->border_width, $self->border_height);
+    foreach(1..$width){
+      $gfx->rect($bl,$bt,$bw,-$bh);
+      $gfx->stroke;
+      $bl++; $bt--;
+      $bw -= 2;
+      $bh -= 2;
+    }
+  }
+
+  foreach(@{$self->children}){
+    $_->render;
+  }
+
+}
+
+__PACKAGE__->meta->make_immutable;
+
+1;
+
+__END__
+
+
+
+
+
 
 sub size_and_position{
   my ($self) = @_;
@@ -154,39 +258,6 @@ sub kids_min_size{
   my $kid = $self->children->[0];
   return ($kid->margin_width, $kid->margin_height) if $kid;
   return (0,0);
-}
-
-sub render{
-  my ($self) = @_;
-
-  my $gfx = $self->boxer->doc->gfx;
-
-  if ($self->background){
-    $gfx->fillcolor($self->background);
-    $gfx->rect($self->border_left, $self->border_top, $self->border_width, -$self->border_height);
-    $gfx->fill;
-  }
-
-  # === Need to change to respect all border sides sizes ===
-  # increasing linewidth thickens the border "around" the lines of the rectangle.
-  # we want to thinken "inside" the rectangle..
-  if (my $width = $self->border->[0]){
-    $gfx->linewidth(1);
-    $gfx->strokecolor($self->border_color || 'black');
-    my ($bl,$bt,$bw,$bh) = ($self->border_left, $self->border_top, $self->border_width, $self->border_height);
-    foreach(1..$width){
-      $gfx->rect($bl,$bt,$bw,-$bh);
-      $gfx->stroke;
-      $bl++; $bt--;
-      $bw -= 2;
-      $bh -= 2;
-    }
-  }
-
-  foreach(@{$self->children}){
-    $_->render;
-  }
-
 }
 
 sub add_marker{

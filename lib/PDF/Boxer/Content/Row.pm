@@ -1,8 +1,116 @@
 package PDF::Boxer::Content::Row;
 use Moose;
 use namespace::autoclean;
+use Scalar::Util qw!weaken!;
 
 extends 'PDF::Boxer::Content::Box';
+
+sub get_default_size{
+  my ($self) = @_;
+  my @kids = @{$self->children};
+  my ($width, $height) = (0,0);
+  foreach(@kids){
+    $width += $_->margin_width;
+    $height = $height ? (sort { $b <=> $a } ($_->margin_height,$height))[0] : $_->margin_height;
+  }
+  return ($width, $height);
+}
+
+sub update_children{
+  my ($self) = @_;
+  $self->update_kids_size     if $self->size_set;
+  $self->update_kids_position if $self->position_set;
+  foreach my $kid (@{$self->children}){
+    $kid->update;
+  }
+  return 1;
+}
+
+sub update_kids_position{
+  my ($self, $args) = @_;
+
+  my $kids = $self->children;
+
+  if (@$kids){
+
+    my $top = $self->content_top;
+    my $left = $self->content_left;
+
+    foreach my $kid (@$kids){
+      $kid->move($left, $top);
+#      $kid->update;
+      $left += $kid->margin_width;
+    }
+  }
+
+  return 1; 
+}
+
+sub update_kids_size{
+  my ($self, $args) = @_;
+
+  my $kids = $self->children;
+
+  my ($kids_width, $kids_height) = $self->get_default_size;
+warn sprintf "default size: %s x %s\n", $kids_width, $kids_height;
+warn sprintf "  my width: %s\n", $self->width;
+
+  if (@$kids){
+    my $space = $self->width - $kids_width;
+warn sprintf "  free space: %s\n", $space;
+    my ($has_grow,$grow,$grow_all);
+    my $space_each = 0;
+#    if ($space > 0){
+      foreach my $kid (@$kids){
+        $has_grow++ if $kid->grow;
+      }
+      if (!$has_grow){
+        $grow_all = 1;
+        $has_grow = @$kids;
+      }
+      $space_each = int($space/$has_grow);
+#    }
+warn sprintf "  space each: %s\n", $space_each;
+
+    my $kheight = $self->content_height;
+
+    foreach my $kid (@$kids){
+      my $kwidth = $kid->margin_width;
+      if ($grow_all || $kid->grow){
+        $kwidth += $space_each;
+      }
+      $kid->set_margin_size($kwidth, $kheight);
+#      $kid->update;
+    }
+  }
+
+  return 1; 
+}
+
+sub child_adjusted_height{
+  my ($self, $child) = @_;
+  weaken($child) if $child;
+  my $low = 5000;
+  foreach(@{$self->children}){
+    $low = $_->margin_bottom if defined $_->margin_bottom && $_->margin_bottom < $low;
+  }
+  if ($self->content_bottom != $low){
+warn sprintf "self bottom: %s kid bottom: %s\n", $self->content_bottom, $low;
+warn sprintf "  %s + %s - %s\n", $self->margin_height, $self->content_bottom, $low;
+    my $height = $self->margin_height + $self->content_bottom - $low;
+    $self->set_height($height);
+    $self->parent->child_adjusted_height($self);
+  }
+}
+
+__PACKAGE__->meta->make_immutable;
+
+1;
+
+__END__
+
+
+
 
 sub set_minimum_size{
   my ($self) = @_;
