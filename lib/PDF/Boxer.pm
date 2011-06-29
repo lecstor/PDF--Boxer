@@ -18,20 +18,21 @@ has 'debug'   => ( isa => 'HashRef', is => 'ro', default => sub{{}} );
 
 has 'doc' => ( isa => 'Object', is => 'ro' );
 
-has 'content_margin_left' => ( isa => 'Int', is => 'rw', default => 0 );
-has 'content_margin_top'  => ( isa => 'Int', is => 'rw', lazy_build => 1 );
-sub _build_content_margin_top{ shift->max_height }
-
 has 'max_width' => ( isa => 'Int', is => 'rw', default => 595 );
 has 'max_height'  => ( isa => 'Int', is => 'rw', default => 842 );
 
-has 'sibling_box' => ( isa => 'PDF::Boxer::Box', is => 'rw', clearer => 'clear_sibling_box' ); 
+has 'box_register' => ( isa => 'HashRef', is => 'ro', default => sub{{}} ); 
 
-has 'box_stack' => ( isa => 'ArrayRef', is => 'ro', default => sub{[]} ); 
+sub register_box{
+  my ($self, $box) = @_;
+  return unless $box->name;
+  weaken($box);
+  $self->box_register->{$box->name} = $box;
+}
 
-sub parent_box{
-  my ($self) = @_;
-  return $self->box_stack->[0];
+sub box_lookup{
+  my ($self, $name) = @_;
+  return $self->box_register->{$name};
 }
 
 sub add_to_pdf{
@@ -44,13 +45,16 @@ sub add_to_pdf{
 
   my $class = 'PDF::Boxer::Content::'.$spec->{type};
   my $node = $class->new($spec);
+  $self->register_box($node);
   $node->initialize;
 #  $node->ruler_h;
   $node->render;
   return $node;
 }
 
+__PACKAGE__->meta->make_immutable;
 
+1;
 
 =head1 NAME
 
@@ -117,14 +121,6 @@ Use a type of "box model" layout to create PDFs.
 =item add_to_pdf
 
   $boxer->add_to_pdf($spec);
-
-=head1 BOX NOTES
-
-=cut
-
-__PACKAGE__->meta->make_immutable;
-
-1;
 
 =head1 LICENSE AND COPYRIGHT
 

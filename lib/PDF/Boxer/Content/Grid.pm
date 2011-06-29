@@ -23,9 +23,7 @@ sub update_kids_position{
     my $top = $self->content_top;
     my $left = $self->content_left;
     foreach my $kid (@$kids){
-warn sprintf "## update_kids_position: %s mh:%s  %s, %s\n", $kid->name, $kid->margin_height, $left, $top;
       $kid->move($left, $top);
-#      $kid->update;
       $top -= $kid->margin_height;
     }
   }
@@ -63,7 +61,6 @@ sub update_kids_size{
         $kheight += $space_each;
       }
       $kid->set_margin_size($kwidth, $kheight);
-#      $kid->update;
     }
 
   }
@@ -86,7 +83,6 @@ sub update_grand_kids{
       foreach my $cell (@{$row->children}){
         push(@cells, $cell->margin_width);
       }
-#      $row_highs[scalar @cells-1] unless @row_highs;
       my $idx = 0;
       foreach my $val (@cells){
         $row_highs[$idx] = $val if $val > $row_highs[$idx] || 0;

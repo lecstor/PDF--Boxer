@@ -68,6 +68,7 @@ sub BUILD{
     $child->{parent} = $weak_me;
     my $class = 'PDF::Boxer::Content::'.$child->{type};
     $child = $class->new($child);
+    $self->boxer->register_box($child);
   }
 
 }

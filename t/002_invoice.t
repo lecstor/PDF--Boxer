@@ -53,8 +53,8 @@ my $spec = <<'__EOP__';
   </column>
   <grid name="ContentGrid" padding="10" border_color="green">
     <row name="ItemHeader" font="Helvetica-Bold" padding="0">
-      <text name="ItemHeaderName" padding="0 10">Name</text>
-      <text name="ItemHeaderDesc" border_color="red" grow="1" padding="0 10">Description</text>
+      <text name="ItemHeaderName" align="center" padding="0 10">Name</text>
+      <text name="ItemHeaderDesc" border_color="red" grow="1" align="center" padding="0 10">Description</text>
       <text name="ItemHeaderGST" padding="0 10" align="center">
         GST
         Amount
@@ -64,7 +64,7 @@ my $spec = <<'__EOP__';
         Amount
       </text>
     </row>
-    <row name="ItemOne" margin="0 0 0 0" border_color="blue">
+    <row grid="ContentGrid" name="ItemOne" margin="10 0 0 0" border_color="blue">
       <text padding="0 5">Web Services</text>
       <text name="ItemText2" grow="1" padding="0 5">
         a long description which needs to be wrapped in boxer markup source
@@ -72,7 +72,7 @@ my $spec = <<'__EOP__';
       <text padding="0 5" align="right">$9999.99</text>
       <text padding="0 5" align="right">$99999.99</text>
     </row>
-    <row name="ItemTwo" margin="0 0 0 0" border_color="lightblue">
+    <row name="ItemTwo" margin="10 0 0 0" border_color="lightblue">
       <text padding="0 5">Web Services</text>
       <text grow="1" padding="0 5">
         a long description which needs to be a a a a a a a a a a a a a a a</text>

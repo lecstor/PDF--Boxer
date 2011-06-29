@@ -80,6 +80,35 @@ sub dump_attr{
 }
 
 
+sub dump_size{
+  my ($self) = @_;
+  my @lines = (
+    '== Size: '.$self->name.' ==',
+    (sprintf 'Max: %s x %s', $self->max_width, $self->max_height),
+    (sprintf 'Margin: %s x %s', $self->margin_width, $self->margin_height),
+    (sprintf 'Border: %s x %s', $self->border_width, $self->border_height),
+    (sprintf 'Padding: %s x %s', $self->padding_width, $self->padding_height),
+    (sprintf 'Content: %s x %s', $self->width, $self->height),
+    (sprintf 'Content: %s x %s', $self->width, $self->height),
+  );
+  $_ .= "\n" foreach @lines;
+  return join('', @lines);
+}
+
+
+sub dump_position{
+  my ($self) = @_;
+  my @lines = (
+    '== Pos: '.$self->name.' ==',
+    (sprintf 'Margin: %s %s %s %s', $self->margin_top, $self->margin_right, $self->margin_bottom, $self->margin_left),
+    (sprintf 'Border: %s x %s', $self->border_left, $self->border_top),
+    (sprintf 'Padding: %s x %s', $self->padding_left, $self->padding_top),
+    (sprintf 'Content: %s x %s', $self->content_left, $self->content_top),
+  );
+  $_ .= "\n" foreach @lines;
+  return join('', @lines);
+}
+
 1;
 
 =head1 LICENSE AND COPYRIGHT
