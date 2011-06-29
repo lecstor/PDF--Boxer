@@ -52,12 +52,9 @@ sub update_kids_size{
   my $kids = $self->children;
 
   my ($kids_width, $kids_height) = $self->get_default_size;
-warn sprintf "default size: %s x %s\n", $kids_width, $kids_height;
-warn sprintf "  my width: %s\n", $self->width;
 
   if (@$kids){
     my $space = $self->width - $kids_width;
-warn sprintf "  free space: %s\n", $space;
     my ($has_grow,$grow,$grow_all);
     my $space_each = 0;
 #    if ($space > 0){
@@ -70,7 +67,6 @@ warn sprintf "  free space: %s\n", $space;
       }
       $space_each = int($space/$has_grow);
 #    }
-warn sprintf "  space each: %s\n", $space_each;
 
     my $kheight = $self->content_height;
 
@@ -110,8 +106,6 @@ sub child_adjusted_height{
     $low = $_->margin_bottom if defined $_->margin_bottom && $_->margin_bottom < $low;
   }
   if ($self->content_bottom != $low){
-warn sprintf "self bottom: %s kid bottom: %s\n", $self->content_bottom, $low;
-warn sprintf "  %s + %s - %s\n", $self->margin_height, $self->content_bottom, $low;
     my $height = $self->margin_height + $self->content_bottom - $low;
     $self->set_height($height);
     $self->parent->child_adjusted_height($self);
