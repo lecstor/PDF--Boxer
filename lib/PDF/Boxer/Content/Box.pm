@@ -204,6 +204,23 @@ sub render{
 
 }
 
+sub ruler_h{
+  my ($self, $color) = @_;
+  $color ||= 'blue';
+  my $gfx = $self->boxer->doc->gfx;
+  $gfx->strokecolor($color);
+  $gfx->move(10,0);
+  $gfx->vline($self->margin_height);
+  my $y = 10;
+  while ($y < $self->boxer->max_height){
+    $gfx->move(10,$y);
+    $gfx->hline($y % 50 ? 15 : 20);
+    $y += 10;
+  }
+  $gfx->stroke;
+}
+
+
 __PACKAGE__->meta->make_immutable;
 
 1;

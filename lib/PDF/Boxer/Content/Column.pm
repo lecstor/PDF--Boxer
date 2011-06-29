@@ -86,7 +86,7 @@ sub child_adjusted_height{
 warn sprintf "self bottom: %s kid bottom: %s kid: %s\n", $self->content_bottom, $kid_mb, $kid->name;
 warn sprintf "  %s + %s - %s\n", $self->margin_height, $self->content_bottom, $kid_mb;
       my $height = $self->margin_height + $self->content_bottom - $kid_mb;
-      $self->set_height($height);
+      $self->set_margin_height($height);
       $self->parent->child_adjusted_height($self) if $self->parent;
     }
   }

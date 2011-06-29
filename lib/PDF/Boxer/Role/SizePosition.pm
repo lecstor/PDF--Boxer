@@ -248,13 +248,15 @@ sub _build_width{
   my ($self) = @_;
   if ($self->has_margin_width){
     return $self->margin_width - (
-      $self->padding->[3] + $self->border->[3] + $self->margin->[3]
-      + $self->padding->[1] + $self->border->[1] + $self->margin->[1]
+      $self->padding->[3] + $self->padding->[1]
+      + $self->border->[3] + $self->border->[1]
+      + $self->margin->[3] + $self->margin->[1]
     );
   } elsif ($self->has_margin_left && $self->has_margin_right){
     return $self->margin_right - $self->margin_left - (
-      $self->padding->[3] + $self->border->[3] + $self->margin->[3]
-      + $self->padding->[1] + $self->border->[1] + $self->margin->[1]
+      $self->padding->[3] + $self->padding->[1] 
+      + $self->border->[3] + $self->border->[1] 
+      + $self->margin->[3] + $self->margin->[1]
     );
   } elsif ($self->has_content_left && $self->has_content_right){
     return $self->content_right - $self->content_left;
@@ -266,15 +268,17 @@ sub _build_width{
 sub _build_height{
   my ($self) = @_;
   if ($self->has_margin_height){
-    return $self->margin_height
-      - ($self->padding->[0] + $self->padding->[2]
-        + $self->border->[0] + $self->border->[2] 
-        + $self->margin->[0] + $self->margin->[2]);
+    return $self->margin_height - (
+      $self->padding->[0] + $self->padding->[2]
+      + $self->border->[0] + $self->border->[2] 
+      + $self->margin->[0] + $self->margin->[2]
+    );
   } elsif ($self->has_margin_left && $self->has_margin_right){
-    return $self->margin_right - $self->margin_left
-      - ($self->padding->[0] + $self->padding->[2]
-        + $self->border->[0] + $self->border->[2] 
-        + $self->margin->[0] + $self->margin->[2]);
+    return $self->margin_right - $self->margin_left - (
+      $self->padding->[0] + $self->padding->[2]
+      + $self->border->[0] + $self->border->[2] 
+      + $self->margin->[0] + $self->margin->[2]
+    );
   } elsif ($self->has_content_left && $self->has_content_right){
     return $self->content_right - $self->content_left;
   }

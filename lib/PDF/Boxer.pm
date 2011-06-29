@@ -45,6 +45,7 @@ sub add_to_pdf{
   my $class = 'PDF::Boxer::Content::'.$spec->{type};
   my $node = $class->new($spec);
   $node->initialize;
+  $node->ruler_h;
 #  $node->set_minimum_size;
 #  $node->size_and_position;
 #  $node->tighten;
