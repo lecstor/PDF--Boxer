@@ -14,12 +14,12 @@ use_ok('PDF::Boxer::SpecParser');
 
 my $spec = <<'__EOP__';
 <column name="Main" max_width="595" max_height="842">
-  <column name="Header">
+  <column name="Header" border_color="blue">
     <row name="Head">
-      <box name="Header Left" padding="0" width="320">
+      <box name="Header Left">
         <image src="t/lecstor.gif" name="Lecstor Logo" align="center" valign="center" padding="10" scale="60" />
       </box>
-      <column name="Header Right" grow="1" padding="10" border_color="green">
+      <column name="Header Right" grow="1" padding="10 10 10 0">
         <text name="Address1" padding="3" align="right" size="20" border_color="steelblue">
           Lecstor Pty Ltd
         </text>
@@ -30,87 +30,102 @@ my $spec = <<'__EOP__';
         </text>
       </column>
     </row>
-    <row name="Details">
-      <box name="Recipient" width="300" padding="20">
+    <row name="Details" padding="15 0">
+      <box name="Recipient" padding="20">
         <text name="Address" size="14">
           Mr G Client
           Shop 2 Some Centre, Retail Rd
           Somewhere, NSW 2000
         </text>
       </box>
-      <column name="Invoice" padding="10">
-        <text name="Issued" size="16" font="Helvetica-Bold" align="right">
+      <column name="Invoice" padding="20" border_color="red" grow="1">
+        <text name="IID" size="16" align="right" font="Helvetica-Bold">
           Tax Invoice No. 123
         </text>
         <text name="Issued" size="14" align="right">
           Issued 01/01/2011
+        </text>
+        <text name="Issued" size="14" align="right" font="Helvetica-Bold">
           Due 14/01/2011
-
-          Page 1 of 3
         </text>
       </column>
     </row>
   </column>
-  <grid name="Content" grow="1" padding="10">
-    <row name="Content Row 1" padding="2" font="Helvetica-Bold">
-      <text name="Content Row 1 Column1">
-        blah blah
+  <grid name="ContentGrid" padding="10" border_color="green">
+    <row name="ItemHeader" font="Helvetica-Bold" padding="0">
+      <text name="ItemHeaderName" padding="0 10">Name</text>
+      <text name="ItemHeaderDesc" border_color="red" grow="1" padding="0 10">Description</text>
+      <text name="ItemHeaderGST" padding="0 10" align="center">
+        GST
+        Amount
       </text>
-      <text name="Content Row 1 Column2">
-        blah blah blah
-      </text>
-      <text name="Content Row 1 Column3">
-        blah blah
-      </text>
-      <text name="Content Row 1 Column4">
-        blah blah blah blah
-      </text>
-      <text name="Content Row 1 Column5" align="right">
-        $1999.99
+      <text padding="0 10" align="center">
+        Payable
+        Amount
       </text>
     </row>
-    <row name="Content Row 2" padding="2">
-      <text name="Content Row 2 Column1">
-        blah blah
+    <row name="ItemOne" margin="0 0 0 0" border_color="blue">
+      <text padding="0 5">Web Services</text>
+      <text name="ItemText2" grow="1" padding="0 5">
+        a long description which needs to be wrapped in boxer markup source
       </text>
-      <text name="Content Row 2 Column2">
-        blah blah
-      </text>
-      <text name="Content Row 2 Column3">
-        blah blah blah blah blah
-      </text>
-      <text name="Content Row 2 Column4">
-        blah blah blah blah
-      </text>
-      <text name="Content Row 2 Column5" align="right">
-        $999.99
-      </text>
+      <text padding="0 5" align="right">$9999.99</text>
+      <text padding="0 5" align="right">$99999.99</text>
+    </row>
+    <row name="ItemTwo" margin="0 0 0 0" border_color="lightblue">
+      <text padding="0 5">Web Services</text>
+      <text grow="1" padding="0 5">
+        a long description which needs to be a a a a a a a a a a a a a a a</text>
+      <text padding="0 5" align="right">$9999.99</text>
+      <text padding="0 5" align="right">$99999.99</text>
     </row>
   </grid>
-  <row name="Footer" class="max_width" border="1" padding="5">
-    <text name="FootText" size="14">
-      Mr G Client
-      Shop 2 Some Centre, Retail Rd
-      Somewhere, NSW 2000
-    </text>
-  </row>
+  <column name="Footer" padding="10" grow="1" border_color="purple">
+    <grid name="Totals" grow="1">
+      <row padding="10 5">
+        <text grow="1" padding="0 10" align="right">Total Inc GST</text>
+        <text padding="0 10" align="right">$9999999999.99</text>
+      </row>
+      <row padding="10 5">
+        <text grow="1" padding="0 10" align="right">GST</text>
+        <text padding="0 10" align="right">$999999999.99</text>
+      </row>
+      <row padding="10 5">
+        <text grow="1" padding="0 10" align="right" font="Helvetica-Bold">Amount Due</text>
+        <text padding="0 10" align="right">$9999999999.99</text>
+      </row>
+    </grid>
+    <row name="DD">
+      <column name="DirectDeposit">
+        <text name="DD1" size="14" font="Helvetica-Bold">
+          Please pay by Direct Deposit:
+        </text>
+        <text name="DD2" size="14" padding="20">
+          Commonwealth Bank, Cairns
+          BSB: 01 2345
+          Account: 1234 5678
+        </text>
+      </column>
+    </row>
+  </column>
 </column>
 __EOP__
 
-#  <box name="Content" border="1" height="550"></box>
-#  <box name="Footer" border="1"></box>
+#  <box name="Content" height="550"></box>
+#  <box name="Footer"></box>
 
 my $parser = PDF::Boxer::SpecParser->new;
 $spec = $parser->parse($spec);
 
+#warn p($parser->xml_parser->parse($spec));
+#warn p($spec);
+#exit;
+
 #warn Data::Dumper->Dumper($spec);
 
 my $boxer = PDF::Boxer->new({
-  debug => { adjust =>  { dump => {
-    Address1 => 1, Address2 => 1, 'Header Right' => 1, 'Header Left' => 1,
-    Head => 1, Header => 1,
-  }}},
-  doc => PDF::Boxer::Doc->new({ file => 'test_specparser.pdf' }),
+  doc => PDF::Boxer::Doc->new({ file => 'test_invoice.pdf' }),
+  debug => { adjust => { dump => { ItemOne => 1 } }},
 });
 
 $boxer->add_to_pdf($spec);
