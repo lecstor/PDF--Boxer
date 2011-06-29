@@ -87,6 +87,21 @@ warn sprintf "  space each: %s\n", $space_each;
   return 1; 
 }
 
+sub set_kids_minimum_width{
+  my ($self, $args) = @_;
+  my $kids = $self->children;
+  if ($args->{min_widths} && @{$args->{min_widths}}){
+    if (@$kids){
+      my @widths = @{$args->{min_widths}};
+      foreach my $kid (@$kids){
+        my $width = shift @widths;
+        $kid->set_margin_width($width);
+      }
+    }
+  }
+}
+
+
 sub child_adjusted_height{
   my ($self, $child) = @_;
   weaken($child) if $child;

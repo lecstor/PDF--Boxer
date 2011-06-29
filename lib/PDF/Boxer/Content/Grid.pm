@@ -9,6 +9,7 @@ sub update_children{
   my ($self) = @_;
   $self->update_kids_size     if $self->size_set;
   $self->update_kids_position if $self->position_set;
+  $self->update_grand_kids;
   foreach my $kid (@{$self->children}){
     $kid->update;
   }
@@ -73,7 +74,7 @@ sub update_kids_size{
 sub update_grand_kids{
   my ($self) = @_;
 
-  my ($width, $height) = $self->kids_min_size;
+  my ($width, $height) = $self->get_default_size;
 
   my $kids = $self->children;
 
@@ -93,40 +94,9 @@ sub update_grand_kids{
       }
     }
 
-    my $space = $self->height - $height;
-    my ($has_grow,$grow,$grow_all);
-    my ($space_each);
-    if ($space < $height/10){
-      foreach my $kid (@$kids){
-        $has_grow++ if $kid->grow;
-      }
-      if (!$has_grow){
-        $grow_all = 1;
-        $has_grow = @$kids;
-      }
-      $space_each = int($space/$has_grow);
+    foreach (@$kids){
+      $_->set_kids_minimum_width({ min_widths => \@row_highs });
     }
-
-    my $top = $self->content_top;
-    my $left = $self->content_left;
-
-    my $kwidth = $self->content_width;
-
-    foreach my $kid (@$kids){
-      my $kheight = $kid->margin_height;
-      if ($grow_all || $kid->grow){
-        $kheight += $space_each;
-      }
-      $kid->adjust({
-        margin_left => $left,
-        margin_top => $top,
-        margin_width => $kwidth,
-        margin_height => $kheight,
-      },'parent');
-      $top -= $kheight;
-    }
-
-    $self->propagate('size_and_position', { min_widths => \@row_highs });
   }
 
   return 1;

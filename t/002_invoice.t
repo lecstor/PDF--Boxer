@@ -19,7 +19,7 @@ my $spec = <<'__EOP__';
       <box name="Header Left">
         <image src="t/lecstor.gif" name="Lecstor Logo" align="center" valign="center" padding="10" scale="60" />
       </box>
-      <column name="Header Right" grow="1" padding="20">
+      <column name="Header Right" grow="1" padding="10 10 10 0">
         <text name="Address1" padding="3" align="right" size="20" border_color="steelblue">
           Lecstor Pty Ltd
         </text>
@@ -86,11 +86,11 @@ my $spec = <<'__EOP__';
   <column name="Footer" padding="10" grow="1" border_color="purple" border="2">
     <row name="TotRow" grow="1">
       <grid name="Totals">
-        <row padding="5">
+        <row padding="10 5">
           <text grow="1" padding="0 10" align="right">Total Inc GST</text>
           <text padding="0 10" align="right">$9999999999.99</text>
         </row>
-        <row padding="5">
+        <row padding="10 5">
           <text grow="1" padding="0 10" align="right">GST</text>
           <text padding="0 10" align="right">$999999999.99</text>
         </row>
