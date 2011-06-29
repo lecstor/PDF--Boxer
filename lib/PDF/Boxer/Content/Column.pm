@@ -35,14 +35,14 @@ sub update_kids_size{
     my ($has_grow,$grow,$grow_all);
     my $space_each = 0;
 #    if ($space > 0){
-      foreach my $kid (@$kids){
-        $has_grow++ if $kid->grow;
-      }
-      if (!$has_grow){
-        $grow_all = 1;
-        $has_grow = @$kids;
-      }
-      $space_each = int($space/$has_grow);
+    foreach my $kid (@$kids){
+      $has_grow++ if $kid->grow;
+    }
+#      if (!$has_grow){
+#        $grow_all = 1;
+#        $has_grow = @$kids;
+#      }
+    $space_each = int($space/$has_grow) if $has_grow;
 #    }
 
     my $kwidth = $self->content_width;
@@ -83,11 +83,13 @@ sub child_adjusted_height{
     my $kid = $self->children->[-1];
     my $kid_mb = $kid->margin_bottom;
     if ($self->content_bottom != $kid_mb){
-warn sprintf "self bottom: %s kid bottom: %s kid: %s\n", $self->content_bottom, $kid_mb, $kid->name;
-warn sprintf "  %s + %s - %s\n", $self->margin_height, $self->content_bottom, $kid_mb;
       my $height = $self->margin_height + $self->content_bottom - $kid_mb;
-      $self->set_margin_height($height);
-      $self->parent->child_adjusted_height($self) if $self->parent;
+      if ($height > $self->boxer->max_height){
+        $self->update_kids_size;
+      } else {
+        $self->set_margin_height($height);
+        $self->parent->child_adjusted_height($self) if $self->parent;
+      }
     }
   }
 }
