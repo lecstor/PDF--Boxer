@@ -85,7 +85,7 @@ sub update_grand_kids{
       }
       my $idx = 0;
       foreach my $val (@cells){
-        $row_highs[$idx] = $val if $val > $row_highs[$idx] || 0;
+        $row_highs[$idx] = $val if $val > ($row_highs[$idx] || 0);
         $idx++;
       }
     }

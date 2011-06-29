@@ -82,25 +82,25 @@ my $spec = <<'__EOP__';
   </grid>
   <column name="Footer" padding="10" grow="1" border_color="purple">
     <grid name="Totals" grow="1">
-      <row padding="10 5">
+      <row padding="5 0">
         <text grow="1" padding="0 10" align="right">Total Inc GST</text>
-        <text padding="0 10" align="right">$9999999999.99</text>
+        <text padding="0 5" align="right">$9999999999.99</text>
       </row>
-      <row padding="10 5">
+      <row padding="5 0">
         <text grow="1" padding="0 10" align="right">GST</text>
-        <text padding="0 10" align="right">$999999999.99</text>
+        <text padding="0 5" align="right">$999999999.99</text>
       </row>
-      <row padding="10 5">
+      <row padding="5 0">
         <text grow="1" padding="0 10" align="right" font="Helvetica-Bold">Amount Due</text>
-        <text padding="0 10" align="right">$9999999999.99</text>
+        <text padding="0 5" align="right">$9999999999.99</text>
       </row>
     </grid>
     <row name="DD">
       <column name="DirectDeposit">
-        <text name="DD1" size="14" font="Helvetica-Bold">
+        <text name="DD1" size="18" font="Helvetica-Bold">
           Please pay by Direct Deposit:
         </text>
-        <text name="DD2" size="14" padding="20">
+        <text name="DD2" size="16" padding="20">
           Commonwealth Bank, Cairns
           BSB: 01 2345
           Account: 1234 5678
@@ -118,14 +118,14 @@ my $parser = PDF::Boxer::SpecParser->new;
 $spec = $parser->parse($spec);
 
 #warn p($parser->xml_parser->parse($spec));
-warn p($spec);
+#warn p($spec);
 #exit;
 
 #warn Data::Dumper->Dumper($spec);
 
 my $boxer = PDF::Boxer->new({
   doc => PDF::Boxer::Doc->new({ file => 'test_invoice.pdf' }),
-  debug => { adjust => { dump => { ItemOne => 1 } }},
+#  debug => { adjust => { dump => { ItemOne => 1 } }},
 });
 
 $boxer->add_to_pdf($spec);

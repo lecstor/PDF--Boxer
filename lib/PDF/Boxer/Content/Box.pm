@@ -3,7 +3,7 @@ use Moose;
 use DDP;
 use Scalar::Util qw/weaken/;
 
-has 'debug'   => ( isa => 'HashRef', is => 'ro', default => sub{{}} );
+has 'debug'   => ( isa => 'Bool', is => 'ro', default => 0 );
 
 has 'margin'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
 has 'border'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
