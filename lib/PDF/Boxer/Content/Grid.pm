@@ -5,29 +5,39 @@ use DDP;
 
 extends 'PDF::Boxer::Content::Column';
 
+sub update_children{
+  my ($self) = @_;
+  $self->update_kids_size     if $self->size_set;
+  $self->update_kids_position if $self->position_set;
+  $self->update_grand_kids;
+  foreach my $kid (@{$self->children}){
+    $kid->update;
+  }
+  return 1;
+}
 
-sub size_and_position{
+sub update_kids_position{
+  my ($self) = @_;
+  my $kids = $self->children;
+  if (@$kids){
+    my $top = $self->content_top;
+    my $left = $self->content_left;
+    foreach my $kid (@$kids){
+      $kid->move($left, $top);
+      $top -= $kid->margin_height;
+    }
+  }
+  return 1;
+}
+
+sub update_kids_size{
   my ($self) = @_;
 
-  my ($width, $height) = $self->kids_min_size;
+  my ($width, $height) = $self->get_default_size;
 
   my $kids = $self->children;
 
   if (@$kids){
-    # calculate minumum widths of cells (kids)
-    my @row_highs;
-    foreach my $row (@$kids){
-      my @cells;
-      foreach my $cell (@{$row->children}){
-        push(@cells, $cell->margin_width);
-      }
-#      $row_highs[scalar @cells-1] unless @row_highs;
-      my $idx = 0;
-      foreach my $val (@cells){
-        $row_highs[$idx] = $val if $val > $row_highs[$idx] || 0;
-        $idx++;
-      }
-    }
 
     my $space = $self->height - $height;
     my ($has_grow,$grow,$grow_all);
@@ -43,9 +53,6 @@ sub size_and_position{
       $space_each = int($space/$has_grow);
     }
 
-    my $top = $self->content_top;
-    my $left = $self->content_left;
-
     my $kwidth = $self->content_width;
 
     foreach my $kid (@$kids){
@@ -53,23 +60,43 @@ sub size_and_position{
       if ($grow_all || $kid->grow){
         $kheight += $space_each;
       }
-      $kid->adjust({
-        margin_left => $left,
-        margin_top => $top,
-        margin_width => $kwidth,
-        margin_height => $kheight,
-      },'parent');
-      $top -= $kheight;
+      $kid->set_margin_size($kwidth, $kheight);
     }
 
-    $self->propagate('size_and_position', { min_widths => \@row_highs });
   }
 
   return 1;
 }
 
+sub update_grand_kids{
+  my ($self) = @_;
 
+  my ($width, $height) = $self->get_default_size;
 
+  my $kids = $self->children;
+
+  if (@$kids){
+    # calculate minumum widths of cells (kids)
+    my @row_highs;
+    foreach my $row (@$kids){
+      my @cells;
+      foreach my $cell (@{$row->children}){
+        push(@cells, $cell->margin_width);
+      }
+      my $idx = 0;
+      foreach my $val (@cells){
+        $row_highs[$idx] = $val if $val > $row_highs[$idx] || 0;
+        $idx++;
+      }
+    }
+
+    foreach (@$kids){
+      $_->set_kids_minimum_width({ min_widths => \@row_highs });
+    }
+  }
+
+  return 1;
+}
 
 
 

@@ -51,10 +51,11 @@ sub _build_image_height{
   return $height;
 }
 
-sub set_minimum_size{
+
+
+
+sub get_default_size{
   my ($self) = @_;
-  $self->width($self->image_width);
-  $self->height($self->image_height);
   return ($self->image_width, $self->image_height);
 }
 
@@ -95,17 +96,6 @@ around 'render' => sub{
   $self->$orig();
 
 };
-
-sub dump_attr{
-  my ($self) = @_;
-  my @lines = (
-    '== Image Attr ==',
-    (sprintf 'width: %s', $self->width),
-    (sprintf 'height: %s', $self->height),
-  );
-  $_ .= "\n" foreach @lines;
-  return join('', @lines);
-}
 
 __PACKAGE__->meta->make_immutable;
 

@@ -14,12 +14,12 @@ use_ok('PDF::Boxer::SpecParser');
 
 my $spec = <<'__EOP__';
 <column name="Main" max_width="595" max_height="842">
-  <column name="Header">
+  <column name="Header" border_color="blue">
     <row name="Head">
       <box name="Header Left">
         <image src="t/lecstor.gif" name="Lecstor Logo" align="center" valign="center" padding="10" scale="60" />
       </box>
-      <column name="Header Right" grow="1" padding="20">
+      <column name="Header Right" grow="1" padding="10 10 10 0">
         <text name="Address1" padding="3" align="right" size="20" border_color="steelblue">
           Lecstor Pty Ltd
         </text>
@@ -38,7 +38,7 @@ my $spec = <<'__EOP__';
           Somewhere, NSW 2000
         </text>
       </box>
-      <column name="Invoice" padding="20" border_color="red">
+      <column name="Invoice" padding="20" border_color="red" grow="1">
         <text name="IID" size="16" align="right" font="Helvetica-Bold">
           Tax Invoice No. 123
         </text>
@@ -51,11 +51,11 @@ my $spec = <<'__EOP__';
       </column>
     </row>
   </column>
-  <grid name="Content" padding="10">
-    <row font="Helvetica-Bold" padding="2">
-      <text padding="0 10">Name</text>
-      <text grow="1" padding="0 10">Description</text>
-      <text padding="0 10" align="center">
+  <grid name="ContentGrid" padding="10" border_color="green">
+    <row name="ItemHeader" font="Helvetica-Bold" padding="0">
+      <text name="ItemHeaderName" align="center" padding="0 10">Name</text>
+      <text name="ItemHeaderDesc" border_color="red" grow="1" align="center" padding="0 10">Description</text>
+      <text name="ItemHeaderGST" padding="0 10" align="center">
         GST
         Amount
       </text>
@@ -64,42 +64,37 @@ my $spec = <<'__EOP__';
         Amount
       </text>
     </row>
-    <row name="ItemOne" padding="5" border_color="red">
-      <text padding="0 10">Web Services</text>
-      <text grow="1" padding="0 10">
+    <row grid="ContentGrid" name="ItemOne" margin="10 0 0 0" border_color="blue">
+      <text padding="0 5">Web Services</text>
+      <text name="ItemText2" grow="1" padding="0 5">
         a long description which needs to be wrapped in boxer markup source
       </text>
-      <text padding="0 10" align="right">$9999.99</text>
-      <text padding="0 10" align="right">$99999.99</text>
+      <text padding="0 5" align="right">$9999.99</text>
+      <text padding="0 5" align="right">$99999.99</text>
     </row>
-    <row padding="5">
-      <text padding="0 10">Web Services</text>
-      <text grow="1" padding="0 10">
-        a long description
-        which needs to be
-        wrapped
-      </text>
-      <text padding="0 10" align="right">$9999.99</text>
-      <text padding="0 10" align="right">$99999.99</text>
+    <row name="ItemTwo" margin="10 0 0 0" border_color="lightblue">
+      <text padding="0 5">Web Services</text>
+      <text grow="1" padding="0 5">
+        a long description which needs to be a a a a a a a a a a a a a a a</text>
+      <text padding="0 5" align="right">$9999.99</text>
+      <text padding="0 5" align="right">$99999.99</text>
     </row>
   </grid>
-  <column name="Footer" padding="10" grow="1">
-    <row name="TotRow" grow="1">
-      <grid name="Totals">
-        <row padding="5">
-          <text grow="1" padding="0 10" align="right">Total Inc GST</text>
-          <text padding="0 10" align="right">$9999999999.99</text>
-        </row>
-        <row padding="5">
-          <text grow="1" padding="0 10" align="right">GST</text>
-          <text padding="0 10" align="right">$999999999.99</text>
-        </row>
-        <row padding="10 5">
-          <text grow="1" padding="0 10" align="right" font="Helvetica-Bold">Amount Due</text>
-          <text padding="0 10" align="right">$9999999999.99</text>
-        </row>
-      </grid>
-    </row>
+  <column name="Footer" padding="10" grow="1" border_color="purple">
+    <grid name="Totals" grow="1">
+      <row padding="10 5">
+        <text grow="1" padding="0 10" align="right">Total Inc GST</text>
+        <text padding="0 10" align="right">$9999999999.99</text>
+      </row>
+      <row padding="10 5">
+        <text grow="1" padding="0 10" align="right">GST</text>
+        <text padding="0 10" align="right">$999999999.99</text>
+      </row>
+      <row padding="10 5">
+        <text grow="1" padding="0 10" align="right" font="Helvetica-Bold">Amount Due</text>
+        <text padding="0 10" align="right">$9999999999.99</text>
+      </row>
+    </grid>
     <row name="DD">
       <column name="DirectDeposit">
         <text name="DD1" size="14" font="Helvetica-Bold">
