@@ -1,17 +1,15 @@
 package PDF::Boxer::Content::Text;
 use Moose;
 use namespace::autoclean;
-use DDP;
 
 extends 'PDF::Boxer::Content::Box';
 with 'PDF::Boxer::Role::Text';
-
 
 sub get_default_size{
   my ($self) = @_;
   my $space = $self->boxer->max_width;
   my ($width, $height) = $self->find_smallest_block($space);
-warn sprintf "Text %s default size: %s x %s\n", $self->name, $width, $height if $self->debug && $self->name; 
+  warn sprintf "Text %s default size: %s x %s\n", $self->name, $width, $height if $self->debug && $self->name; 
   return (int($width+1), int($height+1));
 }
 
@@ -19,12 +17,12 @@ around 'update' => sub{
   my ($orig, $self) = @_;
 
   my ($width, $height) = $self->find_smallest_block($self->width);
-warn sprintf "Text %s smallest_block %s x %s\n", ($self->name, $width, $height) if $self->debug && $self->name;
+  warn sprintf "Text %s smallest_block %s x %s\n", ($self->name, $width, $height) if $self->debug && $self->name;
   $self->set_height($height) if $self->height < $height;
 
-warn sprintf "Text %s child_adjusted_height? %s < %s\n", $self->name, $self->margin_bottom, $self->parent->content_bottom if $self->debug && $self->name;
+  warn sprintf "Text %s child_adjusted_height? %s < %s\n", $self->name, $self->margin_bottom, $self->parent->content_bottom if $self->debug && $self->name;
   if ($self->margin_bottom < $self->parent->content_bottom){
-warn "Text child_adjusted_height\n" if $self->debug;
+    warn "Text child_adjusted_height\n" if $self->debug;
     $self->parent->child_adjusted_height($self);
   }
   
@@ -69,7 +67,7 @@ sub find_smallest_block{
   my $wrapped_lines = $self->wrapped_lines([@{$self->value}], $space);
   my $width = $self->longest_line($wrapped_lines);
   my $height = $self->lead * scalar @$wrapped_lines;
-warn sprintf "Text %s find_smallest_block: %s x %s\n", $self->name, $width, $height if $self->debug && $self->name; 
+  warn sprintf "Text %s find_smallest_block: %s x %s\n", $self->name, $width, $height if $self->debug && $self->name; 
   return ($width, $height); # if 1 - $width/($height || 1) < .2;
 }
 

@@ -2,10 +2,12 @@ package PDF::Boxer;
 use Moose;
 use namespace::autoclean;
 
+our $VERSION   = '1.00';
+$VERSION = eval $VERSION;
+
 use PDF::Boxer::Doc;
 use PDF::Boxer::Content::Box;
 use PDF::Boxer::Content::Text;
-use PDF::Boxer::Content::TextBlock;
 use PDF::Boxer::Content::Image;
 use PDF::Boxer::Content::Row;
 use PDF::Boxer::Content::Column;
@@ -13,10 +15,15 @@ use PDF::Boxer::Content::Grid;
 use Try::Tiny;
 use DDP;
 use Scalar::Util qw/weaken/;
+use Moose::Util::TypeConstraints;
+
+coerce 'PDF::Boxer::Doc'
+  => from 'HashRef'
+    => via { PDF::Boxer::Doc->new($_) };
 
 has 'debug'   => ( isa => 'Bool', is => 'ro', default => 0 );
 
-has 'doc' => ( isa => 'Object', is => 'ro' );
+has 'doc' => ( isa => 'PDF::Boxer::Doc', is => 'ro', coerce => 1 );
 
 has 'max_width' => ( isa => 'Int', is => 'rw', default => 595 );
 has 'max_height'  => ( isa => 'Int', is => 'rw', default => 842 );
@@ -68,7 +75,7 @@ PDF::Boxer
 
 =head1 SYNOPSIS
 
-  my $spec = <<'__EOP__';
+  $pdfml = <<'__EOP__';
   <column max_width="595" max_height="842">
     <column border_color="blue" border="2">
       <row>
@@ -120,12 +127,10 @@ PDF::Boxer
   </column>
   __EOP__
 
-  my $parser = PDF::Boxer::SpecParser->new;
-  $spec = $parser->parse($spec);
+  $parser = PDF::Boxer::SpecParser->new;
+  $spec = $parser->parse($pdfml);
 
-  my $boxer = PDF::Boxer->new({
-    doc => PDF::Boxer::Doc->new({ file => 'test_invoice.pdf' }),
-  });
+  $boxer = PDF::Boxer->new( doc => { file => 'test_invoice.pdf' } );
 
   $boxer->add_to_pdf($spec);
   $boxer->finish;

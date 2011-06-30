@@ -135,10 +135,7 @@ sub get_default_size{
       $width = $width ? (sort($_->margin_width,$width))[1] : $_->margin_width;
     }
     $height += $highest;
-  }# else {
-  #  $width = $self->has_width ? $self->width : 0;
-  #  $height = $self->has_height ? $self->height : 0;
-  #}
+  }
   return ($width, $height);
 }
 

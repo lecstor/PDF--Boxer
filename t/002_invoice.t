@@ -119,10 +119,7 @@ $spec = $parser->parse($spec);
 
 #warn Data::Dumper->Dumper($spec);
 
-my $boxer = PDF::Boxer->new({
-  doc => PDF::Boxer::Doc->new({ file => 'test_invoice.pdf' }),
-#  debug => { adjust => { dump => { ItemOne => 1 } }},
-});
+my $boxer = PDF::Boxer->new( doc => { file => 'test_invoice.pdf' } );
 
 $boxer->add_to_pdf($spec);
 
