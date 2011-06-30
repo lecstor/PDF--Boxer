@@ -16,9 +16,7 @@ my $spec = <<'__EOP__';
 <column name="Main" max_width="595" max_height="842">
   <column name="Header" border_color="blue">
     <row name="Head">
-      <box name="Header Left">
-        <image src="t/lecstor.gif" name="Lecstor Logo" align="center" valign="center" padding="10" scale="60" />
-      </box>
+      <image src="t/lecstor.gif" name="Lecstor Logo" align="center" valign="center" padding="10" scale="60" />
       <column name="Header Right" grow="1" padding="10 10 10 0">
         <text name="Address1" padding="3" align="right" size="20" border_color="steelblue">
           Lecstor Pty Ltd
@@ -31,13 +29,11 @@ my $spec = <<'__EOP__';
       </column>
     </row>
     <row name="Details" padding="15 0">
-      <box name="Recipient" padding="20">
-        <text name="Address" size="14">
-          Mr G Client
-          Shop 2 Some Centre, Retail Rd
-          Somewhere, NSW 2000
-        </text>
-      </box>
+      <text name="Address" padding="20" size="14">
+        Mr G Client
+        Shop 2 Some Centre, Retail Rd
+        Somewhere, NSW 2000
+      </text>
       <column name="Invoice" padding="20" border_color="red" grow="1">
         <text name="IID" size="16" align="right" font="Helvetica-Bold">
           Tax Invoice No. 123
