@@ -52,6 +52,12 @@ sub add_to_pdf{
   return $node;
 }
 
+sub finish{
+  my ($self) = @_;
+  $self->doc->pdf->save;
+  $self->doc->pdf->end;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
@@ -62,59 +68,73 @@ PDF::Boxer
 
 =head1 SYNOPSIS
 
-  $boxer = PDF::Boxer->new({
-    doc => PDF::Boxer::Doc->new({ file => 'test.pdf' }),
+  my $spec = <<'__EOP__';
+  <column max_width="595" max_height="842">
+    <column border_color="blue" border="2">
+      <row>
+        <image src="t/lecstor.gif" align="center" valign="center" padding="10" scale="60" />
+        <column grow="1" padding="10 10 10 0">
+          <text padding="3" align="right" size="20">
+            Lecstor Pty Ltd
+          </text>
+          <text padding="3" align="right" size="14">
+            123 Example St, Somewhere, Qld 4879
+          </text>
+        </column>
+      </row>
+      <row padding="15 0">
+        <text padding="20" size="14">
+          Mr G Client
+          Shop 2 Some Centre, Retail Rd
+          Somewhere, NSW 2000
+        </text>
+        <column padding="20" border_color="red" grow="1">
+          <text size="16" align="right" font="Helvetica-Bold">
+            Tax Invoice No. 123
+          </text>
+          <text size="14" align="right">
+            Issued 01/01/2011
+          </text>
+          <text size="14" align="right" font="Helvetica-Bold">
+            Due 14/01/2011
+          </text>
+        </column>
+      </row>
+    </column>
+    <grid padding="10">
+      <row font="Helvetica-Bold" padding="0">
+        <text align="center" padding="0 10">Name</text>
+        <text grow="1" align="center" padding="0 10">Description</text>
+        <text padding="0 10" align="center">GST Amount</text>
+        <text padding="0 10" align="center">Payable Amount</text>
+      </row>
+      <row margin="10 0 0 0">
+        <text padding="0 5">Web Services</text>
+        <text name="ItemText2" grow="1" padding="0 5">
+          a long description which needs to be wrapped to fit in the box
+        </text>
+        <text padding="0 5" align="right">$9999.99</text>
+        <text padding="0 5" align="right">$99999.99</text>
+      </row>
+    </grid>
+  </column>
+  __EOP__
+
+  my $parser = PDF::Boxer::SpecParser->new;
+  $spec = $parser->parse($spec);
+
+  my $boxer = PDF::Boxer->new({
+    doc => PDF::Boxer::Doc->new({ file => 'test_invoice.pdf' }),
   });
 
-  $box => {
-    max_width => '595',
-    max_height => '842',
-    contents => [
-      {
-        padding => 5,
-        height => 80,
-        display => 'block',
-        background => 'lightblue',
-        contents => [
-          {
-            margin => '10 5',
-            border => 1,
-            padding => '5 10 15 20',
-            width => 200,
-            contents => [
-              {
-                contents => [
-                  { type => 'Text', value => ['Tax Invoice'], size => 36, color => 'black' },
-                ],
-              },
-            ],
-          },
-          {
-            margin => 0,
-            border => 0,
-            padding => 10,
-            display => 'block',
-            contents => [
-              {
-                contents => [
-                  { type => 'Text', align => 'right', value => ['Eight Degrees Off Centre'], size => 20, color => 'black' },
-                  { type => 'Text', align => 'right', value => [
-                    '3 Bondi Cres, Kewarra Beach, Qld 4879',
-                    '(07) 4055 6926  enquiries@eightdegrees.com.au'], size => 14, color => 'black' },
-                ],
-              },
-            ],
-          },
-        ]
-      },
-    ],
-  };
-
-  $boxer->add_to_pdf($box);
+  $boxer->add_to_pdf($spec);
+  $boxer->finish;
 
 =head1 DESCRIPTION
 
-Use a type of "box model" layout to create PDFs.
+Use my version of a "box model" layout to create PDFs.
+Use PDF::Boxer::SpecParser to parse a template written in the not so patented PDFML.
+Suggestion: Use L<Template> to dynamically create your PDFML template. 
 
 =head1 METHODS
 
