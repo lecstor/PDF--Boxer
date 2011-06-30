@@ -14,10 +14,12 @@ use_ok('PDF::Boxer::Test::SizePosition');
 my $sp = PDF::Boxer::Test::SizePosition->new({
   max_width => 480,
   max_height => 800,
+  width => 480,
+  height => 800,
   margin_left => 20,
   margin_top => 750,
 
-  pressure => 1,
+  grow => 1,
 });
 ok( $sp, 'new sp');
 is( $sp->width, 480, 'width' );
@@ -29,7 +31,7 @@ is( $sp->margin_top, 750, 'margin_top' );
 
 
 
-$sp->adjust({ max_width => 300 });
+$sp->adjust({ width => 300 });
 is( $sp->width, 300, 'width after max_width change' );
 is( $sp->height, 800, 'height' );
 is( $sp->margin_right, 320, 'margin_right' );
@@ -37,7 +39,7 @@ is( $sp->margin_bottom, -50, 'margin_bottom' );
 is( $sp->margin_left, 20, 'margin_left' );
 is( $sp->margin_top, 750, 'margin_top' );
 
-$sp->adjust({ max_height => 300 });
+$sp->adjust({ height => 300 });
 is( $sp->height, 300, 'height after max_height change' );
 is( $sp->width, 300, 'width after max_height change' );
 is( $sp->margin_right, 320, 'margin_right' );
