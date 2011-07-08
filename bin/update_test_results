@@ -2,6 +2,9 @@
 use strict;
 use warnings;
 
+# ABSTRACT: dump pdf values as correct answers for tests
+# PODNAME: update_test_results
+
 use Data::Dumper;
 use File::Slurp;
 
