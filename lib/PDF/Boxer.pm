@@ -1,77 +1,8 @@
 package PDF::Boxer;
 use Moose;
-use namespace::autoclean;
+# ABSTRACT: Create PDFs from a simple box markup language.
 
 our $VERSION   = '1.00';
-$VERSION = eval $VERSION;
-
-use PDF::Boxer::Doc;
-use PDF::Boxer::Content::Box;
-use PDF::Boxer::Content::Text;
-use PDF::Boxer::Content::Image;
-use PDF::Boxer::Content::Row;
-use PDF::Boxer::Content::Column;
-use PDF::Boxer::Content::Grid;
-use Try::Tiny;
-use DDP;
-use Scalar::Util qw/weaken/;
-use Moose::Util::TypeConstraints;
-
-coerce 'PDF::Boxer::Doc'
-  => from 'HashRef'
-    => via { PDF::Boxer::Doc->new($_) };
-
-has 'debug'   => ( isa => 'Bool', is => 'ro', default => 0 );
-
-has 'doc' => ( isa => 'PDF::Boxer::Doc', is => 'ro', coerce => 1 );
-
-has 'max_width' => ( isa => 'Int', is => 'rw', default => 595 );
-has 'max_height'  => ( isa => 'Int', is => 'rw', default => 842 );
-
-has 'box_register' => ( isa => 'HashRef', is => 'ro', default => sub{{}} ); 
-
-sub register_box{
-  my ($self, $box) = @_;
-  return unless $box->name;
-  weaken($box);
-  $self->box_register->{$box->name} = $box;
-}
-
-sub box_lookup{
-  my ($self, $name) = @_;
-  return $self->box_register->{$name};
-}
-
-sub add_to_pdf{
-  my ($self, $spec) = @_;
-
-  my $weak_me = $self;
-  weaken($weak_me);
-  $spec->{boxer} = $weak_me;
-  $spec->{debug} = $self->debug;
-
-  my $class = 'PDF::Boxer::Content::'.$spec->{type};
-  my $node = $class->new($spec);
-  $self->register_box($node);
-  $node->initialize;
-#  $node->ruler_h;
-  $node->render;
-  return $node;
-}
-
-sub finish{
-  my ($self) = @_;
-  $self->doc->pdf->save;
-  $self->doc->pdf->end;
-}
-
-__PACKAGE__->meta->make_immutable;
-
-1;
-
-=head1 NAME
-
-PDF::Boxer
 
 =head1 SYNOPSIS
 
@@ -143,40 +74,73 @@ Suggestion: Use L<Template> to dynamically create your PDFML template.
 
 =head1 METHODS
 
-=item add_to_pdf
+=method add_to_pdf
 
   $boxer->add_to_pdf($spec);
 
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2011 Jason Galea <lecstor at cpan.org>. All rights reserved.
-
-This library is free software and may be distributed under the same terms as perl itself.
-
 =cut
 
+use namespace::autoclean;
 
+use PDF::Boxer::Doc;
+use PDF::Boxer::Content::Box;
+use PDF::Boxer::Content::Text;
+use PDF::Boxer::Content::Image;
+use PDF::Boxer::Content::Row;
+use PDF::Boxer::Content::Column;
+use PDF::Boxer::Content::Grid;
+use Try::Tiny;
+use Scalar::Util qw/weaken/;
+use Moose::Util::TypeConstraints;
 
+coerce 'PDF::Boxer::Doc'
+  => from 'HashRef'
+    => via { PDF::Boxer::Doc->new($_) };
 
+has 'debug'   => ( isa => 'Bool', is => 'ro', default => 0 );
 
+has 'doc' => ( isa => 'PDF::Boxer::Doc', is => 'ro', coerce => 1 );
 
+has 'max_width' => ( isa => 'Int', is => 'rw', default => 595 );
+has 'max_height'  => ( isa => 'Int', is => 'rw', default => 842 );
 
+has 'box_register' => ( isa => 'HashRef', is => 'ro', default => sub{{}} ); 
 
+sub register_box{
+  my ($self, $box) = @_;
+  return unless $box->name;
+  weaken($box);
+  $self->box_register->{$box->name} = $box;
+}
 
+sub box_lookup{
+  my ($self, $name) = @_;
+  return $self->box_register->{$name};
+}
 
+sub add_to_pdf{
+  my ($self, $spec) = @_;
 
+  my $weak_me = $self;
+  weaken($weak_me);
+  $spec->{boxer} = $weak_me;
+  $spec->{debug} = $self->debug;
 
+  my $class = 'PDF::Boxer::Content::'.$spec->{type};
+  my $node = $class->new($spec);
+  $self->register_box($node);
+  $node->initialize;
+#  $node->ruler_h;
+  $node->render;
+  return $node;
+}
 
+sub finish{
+  my ($self) = @_;
+  $self->doc->pdf->save;
+  $self->doc->pdf->end;
+}
 
+__PACKAGE__->meta->make_immutable;
 
-
-
-
-
-
-
-
-
-
-
-
+1;

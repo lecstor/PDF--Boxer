@@ -1,3 +1,6 @@
 test.pdf
 test_boxer.pdf
 test_invoice.pdf
+/PDF-Boxer-*
+.build
+t/full_tests/invoice.pdf
