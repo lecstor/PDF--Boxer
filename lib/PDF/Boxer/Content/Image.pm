@@ -1,5 +1,7 @@
 package PDF::Boxer::Content::Image;
 use Moose;
+# ABSTRACT: a box that displays an image
+
 use namespace::autoclean;
 
 extends 'PDF::Boxer::Content::Box';

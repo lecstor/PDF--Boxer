@@ -1,5 +1,6 @@
 package PDF::Boxer::Role::BoxDev;
 use Moose::Role;
+# ABSTRACT: methods to aid development
 
 sub ruler_h{
   my ($self, $color) = @_;

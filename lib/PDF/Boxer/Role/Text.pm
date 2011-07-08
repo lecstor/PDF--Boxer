@@ -1,5 +1,6 @@
 package PDF::Boxer::Role::Text;
 use Moose::Role;
+# ABSTRACT: methods & attributes for text boxes
 
 has 'size' => ( isa => 'Int', is => 'ro', default => 14 );
 has 'font' => ( isa => 'Str', is => 'ro', default => 'Helvetica' );

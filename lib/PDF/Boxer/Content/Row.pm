@@ -1,5 +1,7 @@
 package PDF::Boxer::Content::Row;
 use Moose;
+# ABSTRACT: a box of boxes laid out side by side
+
 use namespace::autoclean;
 use Scalar::Util qw!weaken!;
 

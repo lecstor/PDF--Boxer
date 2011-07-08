@@ -2,8 +2,6 @@ package PDF::Boxer;
 use Moose;
 # ABSTRACT: Create PDFs from a simple box markup language.
 
-our $VERSION   = '1.00';
-
 =head1 SYNOPSIS
 
   $pdfml = <<'__EOP__';
@@ -71,8 +69,6 @@ our $VERSION   = '1.00';
 Use my version of a "box model" layout to create PDFs.
 Use PDF::Boxer::SpecParser to parse a template written in the not so patented PDFML.
 Suggestion: Use L<Template> to dynamically create your PDFML template. 
-
-=head1 METHODS
 
 =method add_to_pdf
 

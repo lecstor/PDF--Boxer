@@ -1,5 +1,7 @@
 package PDF::Boxer::Content::Text;
 use Moose;
+# ABSTRACT: a box that displays text
+
 use namespace::autoclean;
 
 extends 'PDF::Boxer::Content::Box';

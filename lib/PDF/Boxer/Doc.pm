@@ -1,5 +1,7 @@
 package PDF::Boxer::Doc;
 use Moose;
+# ABSTRACT: Hold PDF::API2 stuff
+
 use namespace::autoclean;
 
 use PDF::API2;

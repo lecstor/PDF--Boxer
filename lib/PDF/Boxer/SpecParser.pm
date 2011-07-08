@@ -1,5 +1,7 @@
 package PDF::Boxer::SpecParser;
 use Moose;
+# ABSTRACT: Convert markup to Perl data
+
 use namespace::autoclean;
 
 use XML::Parser;
