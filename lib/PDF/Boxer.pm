@@ -2,6 +2,10 @@ package PDF::Boxer;
 use Moose;
 # ABSTRACT: Create PDFs from a simple box markup language.
 
+=head1 NAME
+
+PDF::Boxer
+
 =head1 SYNOPSIS
 
   $pdfml = <<'__EOP__';
