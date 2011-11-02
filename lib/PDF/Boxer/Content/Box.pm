@@ -1,27 +1,107 @@
 package PDF::Boxer::Content::Box;
 use Moose;
-use DDP;
+# ABSTRACT: a box
+
 use Scalar::Util qw/weaken/;
 
 has 'debug'   => ( isa => 'Bool', is => 'ro', default => 0 );
+=attr debug
+
+set true to turn on debugging
+
+=cut
 
 has 'margin'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
+=attr margin
+
+Arrayref containing the size of the margin on each side of the box.
+(top, right, bottom, left)
+
+=cut
+
 has 'border'   => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
+=attr border
+
+Arrayref containing the size of the border on each side of the box.
+(top, right, bottom, left)
+
+=cut
+
 has 'padding'  => ( isa => 'ArrayRef', is => 'ro', default => sub{ [0,0,0,0] } );
+=attr padding
+
+Arrayref containing the size of the padding on each side of the box.
+(top, right, bottom, left)
+
+=cut
+
 has 'children'  => ( isa => 'ArrayRef', is => 'rw', default => sub{ [] } );
+=attr children
+
+Arrayref of boxes contained in this box.
+
+=cut
+
 
 with 'PDF::Boxer::Role::SizePosition'; #, 'PDF::Boxer::Role::BoxDev';
 
+
 has 'boxer' => ( isa => 'PDF::Boxer', is => 'ro' );
+=attr boxer
+
+the Boxer object.
+
+=cut
+
 has 'parent'  => ( isa => 'Object', is => 'ro' );
+=attr parent
+
+The box we are in.
+
+=cut
 
 has 'name' => ( isa => 'Str', is => 'ro' );
+=attr name
+
+The name of this box. Access boxes through the box register using this.
+
+=cut
+
 has 'type' => ( isa => 'Str', is => 'ro', default => 'Box' );
+=attr type
+
+The type of this box. eg text, row, column
+
+=cut
+
 has 'background' => ( isa => 'Str', is => 'ro' );
+=attr background
+
+The background color of this box. (hex string or name)
+
+=cut
+
 has 'border_color' => ( isa => 'Str', is => 'ro' );
+=attr border_color
+
+The border color of this box. (hex string or name)
+
+=cut
 
 has 'font' => ( isa => 'Str', is => 'ro', default => 'Helvetica' );
+=attr font
+
+Non-text boxes will pass this to their children.
+
+=cut
+
 has 'align' => ( isa => 'Str', is => 'ro', default => '' );
+=attr align
+
+The alignment of this box (text string; right or center)
+No align means left.
+
+=cut
 
 sub BUILDARGS{
   my ($class, $args) = @_;
@@ -97,6 +177,11 @@ sub propagate{
 # this may result in their height increasing which needs to be communicated to their parent.
 # the parent can then adjust itself accordingly.
 
+=method initialize
+
+Set the width & height for the box and call initialize on children
+
+=cut
 
 sub initialize{
   my ($self) = @_;
@@ -115,6 +200,12 @@ sub initialize{
 
   return 1;
 }
+
+=method get_default_size
+
+Returns the default width and height for this box.
+
+=cut
 
 # we get our size from the children
 sub get_default_size{

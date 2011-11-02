@@ -1,7 +1,8 @@
 package PDF::Boxer::Content::Grid;
 use Moose;
+# ABSTRACT: a box of rows with column widths aligned
+
 use namespace::autoclean;
-use DDP;
 
 extends 'PDF::Boxer::Content::Column';
 

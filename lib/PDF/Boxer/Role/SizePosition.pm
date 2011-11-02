@@ -1,5 +1,6 @@
 package PDF::Boxer::Role::SizePosition;
 use Moose::Role;
+# ABSTRACT: size and position stuff
 
 use Carp qw(carp croak confess cluck);
 
@@ -156,7 +157,7 @@ sub _build_margin_left{
   } elsif ($self->has_content_right && $self->has_content_width){
     return $self->content_right - $self->content_width;
   }
-  return undef;
+  return;
 }
 
 sub _build_margin_right{
@@ -173,7 +174,7 @@ sub _build_margin_top{
   } elsif ($self->has_content_bottom && $self->has_content_height){
     return $self->content_bottom - $self->content_height;
   }
-  return undef;
+  return;
 }
 
 sub _build_margin_bottom{
@@ -238,7 +239,7 @@ sub _build_width{
   } elsif ($self->has_content_left && $self->has_content_right){
     return $self->content_right - $self->content_left;
   }
-  return undef;
+  return;
 }
 
 sub _build_height{
@@ -258,7 +259,7 @@ sub _build_height{
   } elsif ($self->has_content_left && $self->has_content_right){
     return $self->content_right - $self->content_left;
   }
-  return undef;
+  return;
 }
 
 sub content_width{ shift->width(@_) }

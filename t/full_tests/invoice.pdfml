@@ -1,19 +1,3 @@
-#!/usr/bin/env perl
-use strict;
-use warnings;
-
-use Test::More;
-use Data::Dumper;
-
-use lib 'lib';
-
-use_ok('PDF::Boxer');
-use_ok('PDF::Boxer::Doc');
-use_ok('PDF::Boxer::SpecParser');
-
-my $record_results = 0;
-
-my $spec = <<'__EOP__';
 <column name="Main" max_width="595" max_height="842">
   <column name="Header" border_color="blue">
     <row name="Head">
@@ -110,54 +94,3 @@ my $spec = <<'__EOP__';
     </row>
   </column>
 </column>
-__EOP__
-
-#  <box name="Content" height="550"></box>
-#  <box name="Footer"></box>
-
-my $parser = PDF::Boxer::SpecParser->new;
-$spec = $parser->parse($spec);
-
-#warn p($parser->xml_parser->parse($spec));
-#warn p($spec);
-#exit;
-
-#warn Data::Dumper->Dumper($spec);
-
-my $boxer = PDF::Boxer->new( doc => { file => 'test_invoice.pdf' });
-
-$boxer->add_to_pdf($spec);
-
-my @tests = qw!
-  margin_top margin_right margin_bottom margin_left
-!;
-my %boxes;
-foreach my $box ( values %{$boxer->box_register}){
-  my $name = $box->name;
-  foreach (@tests){
-    $boxes{$name}{$_} = $box->$_;
-  }
-}
-
-if ($record_results){
-  open(my $fh, '>', 't/boxer_test_data.pl') or die "t/boxer_test_data.pl: $!";
-  print $fh Data::Dumper->Dump([\%boxes], ['correct'] );
-  close $fh;
-} else {
-  open(my $fh, '<', 't/boxer_test_data.pl') or die "t/boxer_test_data.pl: $!";
-  my $correct = join('', <$fh> );
-  $correct = eval $correct;
-  close($fh);
-  foreach my $box ( values %{$boxer->box_register}){
-    my $name = $box->name;
-    foreach (@tests){
-      is( $boxes{$name}{$_}, $correct->{$name}{$_}, "$name $_");
-    }
-  }
-}
-
-
-$boxer->doc->pdf->save;
-$boxer->doc->pdf->end();
-
-done_testing();
