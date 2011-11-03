@@ -22,7 +22,7 @@ my $parser = PDF::Boxer::SpecParser->new;
 foreach my $test (@tests){
   my $pdfml = read_file( "$test_dir/$test.pdfml" );
   my $spec = $parser->parse($pdfml);
-  my $boxer = PDF::Boxer->new( doc => { file => "$test_dir/$test.pdf" });
+  my $boxer = PDF::Boxer->new( doc => { file => "full_test_$test.pdf" });
   $boxer->add_to_pdf($spec);
   $boxer->finish;
   test_boxer($test, $boxer);

@@ -4,3 +4,5 @@ test_invoice.pdf
 /PDF-Boxer-*
 .build
 t/full_tests/invoice.pdf
+synopsis_output.pdf
+full_test_invoice.pdf
