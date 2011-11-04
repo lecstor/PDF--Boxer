@@ -102,12 +102,3 @@ around 'render' => sub{
 __PACKAGE__->meta->make_immutable;
 
 1;
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2011 Jason Galea <lecstor at cpan.org>. All rights reserved.
-
-This library is free software and may be distributed under the same terms as perl itself.
-
-=cut
-
