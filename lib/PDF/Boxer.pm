@@ -75,9 +75,57 @@ Use my version of a "box model" layout to create PDFs.
 Use PDF::Boxer::SpecParser to parse a template written in the not so patented PDFML.
 Suggestion: Use L<Template> to dynamically create your PDFML template. 
 
+=head1 MARKUP
+
+There should always be a single parent element which would commonly be a column
+allowing other elements to be stacked vertically on the page.
+
+=item column
+
+a column stacks elements vertically. Each element will be as wide as the
+column's content space. If one or more children have the "grow" attribute
+set then they will be stretched vertically to fill the column.
+
+=item row
+
+a row places it's children horizontally. If one or more children have the
+"grow" attribute set then they will be stretched horizontally to fill the
+row.
+
+=item grid
+
+a grid is a column with rows for children. The width of the rows' child elements
+are locked vertically (like an html table).
+
+=item text
+
+the text element contains.. text! Text is wrapped to fith the width of it's
+container if necessary.
+
+=item image
+
+the image element places an image in the PDF.. whoda thunkit, eh?
+the image can be scaled to a percentage of it's original size.
+
 =method add_to_pdf
 
   $boxer->add_to_pdf($spec);
+
+Coverts markup to PDF.
+
+=method finish
+
+Writes the generated PDF to the file specified in the call to new.
+
+=head1 SEE ALSO
+
+=for :list
+* L<PDF::Boxer::Content::Box>
+* L<PDF::Boxer::Content::Row>
+* L<PDF::Boxer::Content::Column>
+* L<PDF::Boxer::Content::Grid>
+* L<PDF::Boxer::Content::Text>
+* L<PDF::Boxer::Content::Image>
 
 =cut
 
