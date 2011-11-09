@@ -291,7 +291,11 @@ sub render{
     }
   }
 
-  if ($self->name eq 'Head' || $self->name eq 'Header' || $self->name eq 'Details' || $self->name eq 'ContentGrid'){
+  if ($self->debug && $self->name && 
+       ( $self->name eq 'Head'
+         || $self->name eq 'Header' 
+         || $self->name eq 'Details' 
+         || $self->name eq 'ContentGrid' ){
     warn "Name: ".$self->name."\n";
     warn sprintf "Top: %s\tRight: %s\tBottom: %s\tLeft: %s\n",
       $self->margin_top, $self->margin_right, $self->margin_bottom, $self->margin_left;
