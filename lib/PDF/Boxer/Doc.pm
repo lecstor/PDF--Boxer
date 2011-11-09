@@ -18,7 +18,7 @@ sub _build_page{
   my ($self) = @_;
   my $page = $self->pdf->page;
   $page->mediabox(0,0,$self->page_width, $self->page_height);
-#  $page->cropbox($self->page_width-10, $self->page_height);
+  #$page->cropbox($self->page_width-10, $self->page_height);
   return $page;
 }
 
@@ -33,7 +33,9 @@ sub _build_gfx{ shift->page->gfx }
 
 has 'text' => ( isa => 'Object', is => 'rw', lazy_build => 1 );
 sub _build_text{
-  my $txt = shift->page->text;
+  my ($self) = @_;
+  $self->gfx;
+  my $txt = $self->page->text;
   $txt->compressFlate;
   return $txt;
 }
@@ -48,6 +50,13 @@ sub _build_fonts{
     'Times'            => { type => 'corefont', id => 'Times', -encoding => 'latin1' },
     'Times-Bold'       => { type => 'corefont', id => 'Times-Bold', -encoding => 'latin1' },
   }
+}
+
+sub new_page{
+  my ($self) = @_;
+  $self->clear_page;
+  $self->clear_text;
+  $self->clear_gfx;
 }
 
 sub font{

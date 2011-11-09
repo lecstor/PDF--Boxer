@@ -1,5 +1,11 @@
 Revision history for PDF-Boxer
 
+        - width of border edges can now be set individually
+        - let dzil do git stuff for release.
+        - added more docs.
+        - build pdf->gfx object before text object so text shows over graphics.
+        - enable multi-page documents to be specified in markup.
+
 0.01    04/11/11
         First version, released on an unsuspecting world.
 

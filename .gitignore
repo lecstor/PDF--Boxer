@@ -1,8 +1,3 @@
-test.pdf
-test_boxer.pdf
-test_invoice.pdf
+*.pdf
 /PDF-Boxer-*
 .build
-t/full_tests/invoice.pdf
-synopsis_output.pdf
-full_test_invoice.pdf

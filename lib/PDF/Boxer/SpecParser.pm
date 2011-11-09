@@ -58,6 +58,10 @@ sub mangle_spec{
       $element->[0]{type} = 'Grid';
       push(@{$spec->{children}}, shift @$element);
       $self->mangle_spec($spec->{children}->[-1], $element);
+    } elsif (lc($tag) eq 'doc'){
+      $element->[0]{type} = 'Doc';
+      push(@{$spec->{children}}, shift @$element);
+      $self->mangle_spec($spec->{children}->[-1], $element);
     } else {
       $element->[0]{type} = 'Box';
       push(@{$spec->{children}}, shift @$element);
@@ -68,6 +72,7 @@ sub mangle_spec{
 
 sub clean_text{
   my ($self, $element) = @_;
+  return unless $element;
   return if $element =~ /^[\s\n\r]*$/;
   if ($self->clean_whitespace){
     $element =~ s/^[\s\n\r]+//;

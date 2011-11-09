@@ -20,6 +20,7 @@ has 'background' => ( isa => 'Str', is => 'ro' );
 has 'border_color' => ( isa => 'Str', is => 'ro' );
 has 'font' => ( isa => 'Str', is => 'ro', default => 'Helvetica' );
 has 'align' => ( isa => 'Str', is => 'ro', default => '' );
+has 'valign' => ( isa => 'Str', is => 'ro', default => '' );
 
 =attr debug
 
@@ -76,6 +77,11 @@ Non-text boxes will pass this to their children.
 
 The alignment of this box (text string; right or center)
 No align means left.
+
+=attr valign
+
+The vertical alignment of this box (text string; bottom or center)
+No align means top.
 
 =cut
 
@@ -247,20 +253,48 @@ sub render{
     $gfx->fill;
   }
 
-  # === Need to change to respect all border sides sizes ===
-  # increasing linewidth thickens the border "around" the lines of the rectangle.
-  # we want to thinken "inside" the rectangle..
-  if (my $width = $self->border->[0]){
-    $gfx->linewidth(1);
+  if ($self->border){
+
+    my $left = $self->border_left;
+    my $top = $self->border_top;
+    my $right = $left + $self->border_width;
+    my $bottom = $top - $self->border_height;
+
     $gfx->strokecolor($self->border_color || 'black');
-    my ($bl,$bt,$bw,$bh) = ($self->border_left, $self->border_top, $self->border_width, $self->border_height);
-    foreach(1..$width){
-      $gfx->rect($bl,$bt,$bw,-$bh);
+
+    if ($self->border->[0]){
+      $gfx->linewidth($self->border->[0]);
+      $gfx->move($left, $top);
+      $gfx->line($right, $top);
       $gfx->stroke;
-      $bl++; $bt--;
-      $bw -= 2;
-      $bh -= 2;
     }
+
+    if ($self->border->[1]){
+      $gfx->linewidth($self->border->[1]);
+      $gfx->move($right, $top);
+      $gfx->line($right, $bottom);
+      $gfx->stroke;
+    }
+
+    if ($self->border->[2]){
+      $gfx->linewidth($self->border->[2]);
+      $gfx->move($right, $bottom);
+      $gfx->line($left, $bottom);
+      $gfx->stroke;
+    }
+
+    if ($self->border->[3]){
+      $gfx->linewidth($self->border->[3]);
+      $gfx->move($left, $bottom);
+      $gfx->line($left, $top);
+      $gfx->stroke;
+    }
+  }
+
+  if ($self->name eq 'Head' || $self->name eq 'Header' || $self->name eq 'Details' || $self->name eq 'ContentGrid'){
+    warn "Name: ".$self->name."\n";
+    warn sprintf "Top: %s\tRight: %s\tBottom: %s\tLeft: %s\n",
+      $self->margin_top, $self->margin_right, $self->margin_bottom, $self->margin_left;
   }
 
   foreach(@{$self->children}){
