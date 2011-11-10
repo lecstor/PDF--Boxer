@@ -6,7 +6,7 @@ use namespace::autoclean;
 
 use PDF::API2;
 
-has 'file' => ( isa => 'Str', is => 'ro', required => 1 );
+has 'file' => ( isa => 'Str', is => 'ro' );
 
 has 'pdf' => ( isa => 'Object', is => 'ro', lazy_build => 1 );
 sub _build_pdf{
