@@ -1,5 +1,10 @@
 Revision history for PDF-Boxer
 
+        - doc additions
+        - lazy build doc
+        - doc doesn't require file
+
+0.002   09/11/11
         - width of border edges can now be set individually
         - let dzil do git stuff for release.
         - added more docs.
