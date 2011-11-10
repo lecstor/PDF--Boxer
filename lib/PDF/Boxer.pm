@@ -3,10 +3,6 @@ use Moose;
 
 # ABSTRACT: Create PDFs from a simple box markup language.
 
-=head1 NAME
-
-PDF::Boxer
-
 =head1 SYNOPSIS
 
   $pdfml = <<'__EOP__';
@@ -129,11 +125,11 @@ align right or center instead of the default left.
 
 background is set as a hexadecimal color.
 
-=item border
-
-border width set in pixels
-
 =item border_color
+
+  border_color="#FF0000"
+
+border_color is set as a hexadecimal color.
 
 =item font
 
@@ -228,12 +224,17 @@ coerce 'PDF::Boxer::Doc'
 
 has 'debug'   => ( isa => 'Bool', is => 'ro', default => 0 );
 
-has 'doc' => ( isa => 'PDF::Boxer::Doc', is => 'ro', coerce => 1 );
+has 'doc' => ( isa => 'PDF::Boxer::Doc', is => 'ro', coerce => 1, lazy_build => 1 );
 
 has 'max_width' => ( isa => 'Int', is => 'rw', default => 595 );
 has 'max_height'  => ( isa => 'Int', is => 'rw', default => 842 );
 
 has 'box_register' => ( isa => 'HashRef', is => 'ro', default => sub{{}} ); 
+
+sub _build_doc{
+  my ($self) = @_;
+  return PDF::Boxer::Doc->new;
+}
 
 sub register_box{
   my ($self, $box) = @_;
