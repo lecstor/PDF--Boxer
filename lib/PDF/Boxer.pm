@@ -99,6 +99,11 @@ row.
 a grid is a column with rows for children. The width of the rows' child elements
 are locked vertically (like an html table).
 
+You can now set the hborder and/or vborder attributes an a grid to display
+gridlines.
+
+eg <grid hborder="1" vborder="1">
+
 =item text
 
 the text element contains.. text! Text is wrapped to fith the width of it's
