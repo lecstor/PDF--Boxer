@@ -6,6 +6,62 @@ use namespace::autoclean;
 
 extends 'PDF::Boxer::Content::Column';
 
+has 'hborder' => ( isa => 'Int', is => 'rw', default => 0 );
+has 'vborder' => ( isa => 'Int', is => 'rw', default => 0 );
+
+around 'render' => sub {
+  my ($orig, $self) = @_;
+
+  my $kids = $self->children;
+  return unless @$kids;
+
+  my $gfx = $self->boxer->doc->gfx;
+
+  if ($self->hborder) {
+    my @hlines;
+    my $top_pos = $kids->[0]->padding_top;
+    foreach my $kid (@$kids) {
+      next if $top_pos == $kid->padding_top;
+      $top_pos = $kid->padding_top;
+      push @hlines, $top_pos;
+    }
+
+    if (@hlines) {
+      $gfx->linewidth($self->hborder);
+      for my $top (@hlines) {
+        $gfx->move($self->content_left, $top);
+        $gfx->line($self->content_right, $top);
+        $gfx->stroke;
+      }
+    }
+  }
+
+  if ($self->vborder) {
+    my @vlines;
+    my $grand_kids = $kids->[0]->children;
+    if (@$grand_kids) {
+      my $left_pos = $grand_kids->[0]->padding_left;
+      foreach my $grand_kid (@$grand_kids) {
+        next if $left_pos == $grand_kid->padding_left;
+        $left_pos = $grand_kid->padding_left;
+        push @vlines, $left_pos;
+      }
+
+      if (@vlines) {
+        $gfx->linewidth($self->vborder);
+        for my $left (@vlines) {
+          $gfx->move($left, $self->content_top);
+          $gfx->line($left, $self->content_bottom);
+          $gfx->stroke;
+        }
+      }
+    }
+
+  }
+
+  $self->$orig();
+};
+
 sub update_children{
   my ($self) = @_;
   $self->update_kids_size     if $self->size_set;
